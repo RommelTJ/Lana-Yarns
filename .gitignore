@@ -87,3 +87,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+src/config/settings.ini
+.idea/
+*.iml
