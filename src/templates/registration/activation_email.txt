@@ -1,5 +1,5 @@
 {% load i18n %}
-{% trans "Activate account at" %} {{ site.name }}:
+{% trans 'Activate account at' %} {{ site.name }}:
 
 Hello there!
 
@@ -10,4 +10,4 @@ http://{{ site.domain }}{% url 'registration_activate' activation_key %}
 
 {% blocktrans %}The above link is valid for {{ expiration_days }} days.{% endblocktrans %}
 
--Lana Yarns
+-Site Team
