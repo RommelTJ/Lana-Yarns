@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.core.urlresolvers import reverse
+from django.utils.text import slugify
+import uuid
 
 # Create your models here.
 
@@ -47,3 +49,21 @@ class Variation(models.Model):
             return self.price
         else:
             return self.sale_price
+
+# Product Image
+
+def image_upload_to(instance, filename):
+    title = instance.product.title
+    slug = slugify(title)
+    instance_id = str(uuid.uuid4())[:6]
+    basename, file_extension = filename.rsplit('.', 1)
+    new_filename = '%s-%s.%s' % (slug, instance_id, file_extension)
+    return 'products/%s/%s' % (slug, new_filename)
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product)
+    image = models.ImageField(upload_to=image_upload_to)
+
+    def __unicode__(self):
+        return self.product.title
+
