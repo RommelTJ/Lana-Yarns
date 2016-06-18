@@ -31,3 +31,19 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('product_detail', kwargs={'pk': self.pk})
 
+class Variation(models.Model):
+    product = models.ForeignKey(Product)
+    title = models.CharField(max_length=120)
+    price = models.DecimalField(decimal_places=2, max_digits=20)
+    sale_price = models.DecimalField(decimal_places=2, max_digits=20, blank=True, null=True)
+    active = models.BooleanField(default=True)
+    inventory = models.IntegerField(blank=True, null=True) # None means unlimited amount
+
+    def __unicode__(self):
+        return self.title
+
+    def get_price(self):
+        if self.sale_price is None:
+            return self.price
+        else:
+            return self.sale_price
