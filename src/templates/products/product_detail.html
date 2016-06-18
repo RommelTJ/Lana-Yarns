@@ -2,17 +2,35 @@
 
 {% block content %}
 
-    {{ object.title }}
+    <div class="row">
+        <div class="col-sm-8">
+            <h2>{{ object.title }}</h2>
+            <p class="lead">{{ object.description }}</p>
+        </div>
 
-    {% if object.variation_set.count > 1 %}
-        <select class="form-control">
-            {% for var_obj in object.variation_set.all %}
-                <option value="{{ var_obj.id }}">{{ var_obj.title }}</option>
-            {% endfor %}
-        </select>
-    {% endif %}
+        <!-- Product sidebar -->
+        <div class="col-sm-4">
 
-    <br/>
-    <a href="#">Add to Cart</a>
+            <h3>$ {{ object.price }}</h3>
+
+            {% if object.variation_set.count > 1 %}
+
+                <select class="form-control">
+                    {% for var_obj in object.variation_set.all %}
+                        <option value="{{ var_obj.id }}">{{ var_obj.title }}</option>
+                    {% endfor %}
+                </select>
+
+            {% endif %}
+
+            <br/>
+            <a href="#" class="btn btn-primary">Add to Cart</a>
+
+            <hr/>
+
+            <h4>Related Products</h4>
+        </div>  <!-- end of Product sidebar -->
+
+    </div>
 
 {% endblock %}
