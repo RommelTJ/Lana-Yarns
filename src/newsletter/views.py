@@ -2,16 +2,21 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import render
 
+from products.models import ProductFeatured
 from .forms import ContactForm, SignUpForm
 from .models import SignUp
 
 # Create your views here.
+
+
 def home(request):
     title = 'Sign Up Now'
+    featured_product = ProductFeatured.objects.filter(active=True).order_by('-timestamp').first()
     form = SignUpForm(request.POST or None)
     context = {
         "title": title,
-        "form": form
+        "form": form,
+        'featured_product': featured_product,
     }
     if form.is_valid():
         instance = form.save(commit=False)
@@ -49,8 +54,8 @@ def contact(request):
             form_message,
             form_email)
         some_html_message = """
-		<h1>hello</h1>
-		"""
+        <h1>hello</h1>
+        """
         send_mail(subject,
                   contact_message,
                   from_email,

@@ -115,3 +115,38 @@ class Category(models.Model):
     class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
+
+
+# Featured Products
+
+def image_upload_to_featured(instance, filename):
+    title = instance.product.title
+    slug = slugify(title)
+    instance_id = str(uuid.uuid4())[:6]
+    basename, file_extension = filename.rsplit('.', 1)
+    new_filename = '%s-%s.%s' % (slug, instance_id, file_extension)
+    return 'products/%s/featured/%s' % (slug, new_filename)
+
+
+class ProductFeatured(models.Model):
+    product = models.ForeignKey(Product)
+    image = models.ImageField(upload_to=image_upload_to_featured)
+    title = models.CharField(max_length=120, null=True, blank=True)
+    text = models.CharField(max_length=220, null=True, blank=True)
+    """
+    The text will forced to be shown in the middle when the as_background is set to be true.
+    So text_right would not work anymore.
+    If as_background is set to be false, then the text will be shown according to the
+    text_right boolean field. The text will be show on the left of the screen by default.
+    """
+    text_right = models.BooleanField(default=False)
+    as_background = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True, auto_now=False)
+    active = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return self.product.title
+
+    class Meta:
+        verbose_name = "Featured Product"
+        verbose_name_plural = "Featured Products"
