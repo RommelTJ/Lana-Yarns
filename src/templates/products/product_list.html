@@ -1,13 +1,31 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
 
 {% block content %}
 
-    <table class="table">
+    {% if query %}
+        <h3>Search results for: {{ query }}</h3>
+    {% else %}
+        <h3>All Products <small><a href="{% url 'categories' %}">Categories</a></small></h3>
+    {% endif %}
+
+    <div class="row">
         {% for object in object_list %}
-            <tr>
-                <td><a href="{{ object.get_absolute_url }}">{{ object.title }}</a></td>
-            </tr>
+            <div class="col-xs-3">
+                <div class="thumbnail text-center">
+                    <a href="{{ object.get_absolute_url }}">
+                        <h4>{{ object.title }}</h4>
+                        {% if object.get_feature_image_url %}
+                            <img class="img-responsive" src="{{ object.get_feature_image_url }}" />
+                        {% else %}
+                            <img class="img-responsive" src="{% static 'img/default_product.jpg' %}" />
+                        {% endif %}
+                    </a>
+                    <br/>
+                </div>
+            </div>
+            {% cycle '' '' '' '</div><div class="row">' %}
         {% endfor %}
-    </table>
+    </div>
 
 {% endblock %}

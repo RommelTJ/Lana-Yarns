@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
 
 <script type="text/javascript">
     {% block jquery %}
@@ -69,9 +70,24 @@
 
             <h4>Related Products</h4>
 
-            {% for product in related %}
-                <a href="{{ product.get_absolute_url }}">{{ product.title }}</a><br/>
-            {% endfor %}
+            <div class="row">
+                {% for product in related %}
+                    <div class="col-xs-6">
+                        <div class="thumbnail text-center">
+                            <a href="{{ product.get_absolute_url }}">
+                                <h4>{{ product.title }}</h4>
+                                {% if product.get_feature_image_url %}
+                                    <img class="img-responsive" src="{{ product.get_feature_image_url }}" />
+                                {% else %}
+                                    <img class="img-responsive" src="{% static 'img/default_product.jpg' %}" />
+                                {% endif %}
+                            </a>
+                            <br/>
+                        </div>
+                    </div>
+                    {% cycle '' '</div><div class="row">' %}
+                {% endfor %}
+            </div>
         </div>  <!-- end of Product sidebar -->
 
     </div>

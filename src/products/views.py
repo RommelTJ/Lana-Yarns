@@ -5,6 +5,7 @@ from django.http import Http404
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.utils import timezone
+import random
 import re
 
 from .models import Product, Variation, Category
@@ -28,7 +29,7 @@ class ProductDetailView(DetailView):
     def get_context_data(self, *args, **kwargs):
         context = super(ProductDetailView, self).get_context_data(*args, **kwargs)
         instance = self.get_object()
-        context['related'] = Product.objects.get_related(instance).order_by('?')[:6]
+        context['related'] = sorted(Product.objects.get_related(instance)[:6], key=lambda x: random.random())
         return context
 
 
