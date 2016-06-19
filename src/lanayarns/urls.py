@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^contact/$', newsletter_views.contact, name='contact'),
     url(r'^about/$', main_views.about, name='about'),
     url(r'^products/', include('products.urls')),
+    url(r'^categories/', include('products.urls_categories')),
 
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('registration.backends.default.urls')),

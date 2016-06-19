@@ -7,11 +7,12 @@ from django.views.generic.list import ListView
 from django.utils import timezone
 import re
 
-from .models import Product, Variation
+from .models import Product, Variation, Category
 from .forms import VariationInventoryFormSet
 from .mixins import StaffRequiredMixin
 
 # Create your views here.
+
 
 def price_test(query):
     """
@@ -20,8 +21,10 @@ def price_test(query):
     query = query.lstrip().rstrip()
     return re.match('^\d+.\d{1,2}$', query) is not None
 
+
 class ProductDetailView(DetailView):
     model = Product
+
 
 class ProductListView(ListView):
     model = Product
@@ -48,6 +51,7 @@ class ProductListView(ListView):
                     Q(description__icontains=query)
                     )
         return qs
+
 
 class VariationListView(StaffRequiredMixin, ListView):
     model = Variation
@@ -81,6 +85,25 @@ class VariationListView(StaffRequiredMixin, ListView):
             messages.success(request, 'Your inventory and pricing have been updated.')
             return redirect('product_detail', pk=product_pk)
         raise Http404
+
+
+class CategoryListView(ListView):
+    model = Category
+    queryset = Category.objects.all()
+
+
+class CategoryDetailView(DetailView):
+    model = Category
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(CategoryDetailView, self).get_context_data(*args, **kwargs)
+        obj = self.get_object()
+        product_set = obj.product_set.all()
+        default_products = obj.default_category.all()
+        products = ( product_set | default_products ).distinct()
+        context['products'] = products
+        return context
+
 
 def product_detail_view_func(request, id):
     product_instance = get_object_or_404(Product, id=id)
