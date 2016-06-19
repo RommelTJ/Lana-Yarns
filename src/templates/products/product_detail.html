@@ -1,5 +1,24 @@
 {% extends 'base.html' %}
 
+<script type="text/javascript">
+    {% block jquery %}
+        var count = $(".variation_select option").size();
+        if (count > 0) {
+            setPrice();
+        };
+        function setPrice() {
+            var price = $(".variation_select option:selected").attr("data-price");
+            var sale_price = $(".variation_select option:selected").attr("data-sale-price");
+            if (sale_price != "None" && sale_price != "") {
+                $("#price").html("$ " + sale_price + "  <small><strike>Original: " + price + "</strike></small>");
+            } else {
+                $("#price").html("$ " + price);
+            }
+        }
+        $(".variation_select").change(setPrice);
+    {% endblock %}
+</script>
+
 {% block content %}
 
     <div class="row">
@@ -18,13 +37,13 @@
         <!-- Product sidebar -->
         <div class="col-sm-4">
 
-            <h3>$ {{ object.price }}</h3>
+            <h3 id="price">$ {{ object.price }}</h3>
 
             {% if object.variation_set.count > 1 %}
 
-                <select class="form-control">
+                <select class="form-control variation_select">
                     {% for var_obj in object.variation_set.all %}
-                        <option value="{{ var_obj.id }}">{{ var_obj.title }}</option>
+                        <option data-price="{{ var_obj.price }}" data-sale-price="{{ var_obj.sale_price }}" value="{{ var_obj.id }}">{{ var_obj.title }}</option>
                     {% endfor %}
                 </select>
 
