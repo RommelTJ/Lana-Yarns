@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
 
 {% block content %}
 
@@ -8,17 +7,7 @@
     <div class="row">
         {% for product in products %}
             <div class="col-xs-4">
-                <div class="thumbnail text-center">
-                    <a href="{{ product.get_absolute_url }}">
-                        <h4>{{ product.title }}</h4>
-                        {% if product.get_feature_image_url %}
-                            <img class="img-responsive" src="{{ product.get_feature_image_url }}" />
-                        {% else %}
-                            <img class="img-responsive" src="{% static 'img/default_product.jpg' %}" />
-                        {% endif %}
-                    </a>
-                    <br/>
-                </div>
+                {% include 'products/product.thumbnail.html' with product=product %}
             </div>
             {% cycle '' '' '</div><div class="row">' %}
         {% endfor %}

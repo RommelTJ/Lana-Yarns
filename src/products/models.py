@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 import uuid
 
@@ -68,6 +69,13 @@ class Variation(models.Model):
             return self.price
         else:
             return self.sale_price
+
+    def get_html_price(self):
+        if self.sale_price is None:
+            html_text = '<span class="price">%s</span>' % (self.price)
+        else:
+            html_text = '<span class="sale-price">%s</span> <span class="orig-price">%s</span>' % (self.sale_price, self.price)
+        return mark_safe(html_text)
 
 
 # Product Image

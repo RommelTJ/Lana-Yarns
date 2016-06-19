@@ -1,0 +1,17 @@
+{% load staticfiles %}
+
+<div class="thumbnail text-center">
+    <a href="{{ product.get_absolute_url }}">
+        <h4>{{ product.title }}</h4>
+        {% if product.get_feature_image_url %}
+            <img class="img-responsive" src="{{ product.get_feature_image_url }}" />
+        {% else %}
+            <img class="img-responsive" src="{% static 'img/default_product.jpg' %}" />
+        {% endif %}
+    </a>
+    <br/>
+
+    {% if price %}
+        $ {{ product.variation_set.first.get_html_price }}
+    {% endif %}
+</div>
