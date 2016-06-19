@@ -7,9 +7,11 @@ import uuid
 
 # Create your models here.
 
+
 class ProductQuerySet(models.query.QuerySet):
     def active(self):
         return self.filter(active=True)
+
 
 class ProductManager(models.Manager):
     def get_queryset(self):
@@ -17,6 +19,13 @@ class ProductManager(models.Manager):
 
     def all(self, *args, **kwargs):
         return self.get_queryset().active()
+
+    def get_related(self, instance):
+        product_one = self.get_queryset().filter(categories__in=instance.categories.all())
+        product_two = self.get_queryset().filter(default=instance.default)
+        qs = ( product_one | product_two ).exclude(id=instance.id).distinct()
+        return qs
+
 
 class Product(models.Model):
     title = models.CharField(max_length=120)
@@ -36,6 +45,7 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('product_detail', kwargs={'pk': self.pk})
 
+
 class Variation(models.Model):
     product = models.ForeignKey(Product)
     title = models.CharField(max_length=120)
@@ -53,6 +63,7 @@ class Variation(models.Model):
         else:
             return self.sale_price
 
+
 # Product Image
 
 def image_upload_to(instance, filename):
@@ -63,12 +74,14 @@ def image_upload_to(instance, filename):
     new_filename = '%s-%s.%s' % (slug, instance_id, file_extension)
     return 'products/%s/%s' % (slug, new_filename)
 
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product)
     image = models.ImageField(upload_to=image_upload_to)
 
     def __unicode__(self):
         return self.product.title
+
 
 # Product Category
 
