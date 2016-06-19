@@ -24,6 +24,9 @@ class Product(models.Model):
     slug = models.SlugField(unique=True)
     price = models.DecimalField(decimal_places=2, max_digits=20)
     active = models.BooleanField(default=True)
+    # Product Categories
+    categories = models.ManyToManyField('Category')
+    default = models.ForeignKey('Category', related_name='default_category', null=True, blank=True)
 
     objects = ProductManager()
 
@@ -67,3 +70,18 @@ class ProductImage(models.Model):
     def __unicode__(self):
         return self.product.title
 
+# Product Category
+
+class Category(models.Model):
+    title = models.CharField(max_length=120)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True, null=True)
+    active = models.BooleanField(default=True)
+    timestamp = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+    def __unicode__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
