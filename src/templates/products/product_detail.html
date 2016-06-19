@@ -5,12 +5,16 @@
         var count = $(".variation_select option").size();
         if (count > 0) {
             setPrice();
-        };
+        }
+        // Hide variation select box if there's only one variation
+        if (count == 1) {
+            $(".variation_select").hide();
+        }
         function setPrice() {
             var price = $(".variation_select option:selected").attr("data-price");
             var sale_price = $(".variation_select option:selected").attr("data-sale-price");
             if (sale_price != "None" && sale_price != "") {
-                $("#price").html("$ " + sale_price + "  <small><strike>Original: " + price + "</strike></small>");
+                $("#price").html("$ " + sale_price + "  <small class=\"orig-price\">" + price + "</small>");
             } else {
                 $("#price").html("$ " + price);
             }
@@ -39,7 +43,7 @@
 
             <h3 id="price">$ {{ object.price }}</h3>
 
-            {% if object.variation_set.count > 1 %}
+            {% if object.variation_set.count > 0 %}
 
                 <select class="form-control variation_select">
                     {% for var_obj in object.variation_set.all %}
