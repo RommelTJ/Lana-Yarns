@@ -69,8 +69,13 @@ class VariationListView(StaffRequiredMixin, ListView):
         product_pk = self.kwargs.get('pk')
         product = get_object_or_404(Product, pk=product_pk)
         if formset.is_valid():
-            for form in formset:
+            for index, form in enumerate(formset):
                 new_item = form.save(commit=False)
+                # Test if it is the last form (the extra form)
+                if index < len(formset):
+                    # Empty data is allowed in extra form
+                    if not new_item.title:
+                        continue
                 new_item.product = product
                 new_item.save()
             messages.success(request, 'Your inventory and pricing have been updated.')
