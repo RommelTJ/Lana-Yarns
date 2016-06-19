@@ -34,6 +34,15 @@
             <a href="#" class="btn btn-primary">Add to Cart</a>
 
             <hr/>
+            <p>
+                <h4>Share</h4>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank">
+                    <i class="fa fa-facebook-square fa-3x"></i>
+                </a>
+                <a href="https://twitter.com/home?status={{ object.title }}.%20Check%20it%20now%20on%20{{ request.build_absolute_uri }}" target="_blank">
+                    <i class="fa fa-twitter-square fa-3x"></i>
+                </a>
+            </p>
 
             <h4>Related Products</h4>
         </div>  <!-- end of Product sidebar -->
