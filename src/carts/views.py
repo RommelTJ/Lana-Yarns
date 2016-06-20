@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.http import JsonResponse
 from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import render, get_object_or_404, redirect
@@ -39,7 +40,7 @@ class CartView(SingleObjectMixin, View):
     def get(self, request, *args, **kwargs):
         cart = self.get_object()
         item_id = request.GET.get('item_id')
-        delete_item = request.GET.get('delete')
+        delete_item = request.GET.get('delete', False)
         qty = request.GET.get('qty')
         # Check order:
         # 1. item_id -- determine the instance
@@ -50,18 +51,34 @@ class CartView(SingleObjectMixin, View):
         if item_id:
             item_instance = get_object_or_404(Variation, id=item_id)
             cart_item, created = CartItem.objects.get_or_create(cart=cart, item=item_instance)
+            item_updated = False # For Ajax
             if delete_item:
                 cart_item.delete()
                 cart.update_subtotal()  # Recalculate subtotal
             elif qty:
                 if qty.isdigit() and int(qty) > 0:
-                    cart_item.save()
-                    cart_item.quantity = qty
-                    cart_item.save()
+                    if cart_item.quantity != qty:
+                        cart_item.quantity = qty
+                        cart_item.save()
+                        item_updated = True # For Ajax
                 else:
                     messages.error(request, "The input quantity is not valid. Add to cart operation fails.")
                     if created:
                         cart_item.delete()
+        if request.is_ajax():
+            cart.update_subtotal() # Refresh data for Ajax
+            item_added = cart_item and created
+            jsondata = {
+                # For product detail view
+                'item_added': item_added,
+                'item_updated': item_updated,
+                'item_deleted': delete_item,
+                # For cart detail view
+                'line_item_total': cart_item.line_item_total,
+                'subtotal': cart.subtotal,
+            }
+            return JsonResponse(jsondata)
+
         context = {
             'object': cart,
         }

@@ -3,7 +3,26 @@
 <script type="text/javascript">
 {% block jquery %}
     $('.item-qty').change(function(){
-        $(this).next('.btn-update').fadeIn();
+        // event.preventDefault();
+        var item_id = $(this).prev("input[type='hidden']").val();
+        var qty = $(this).val();
+        var formData = {
+                    item_id: item_id,
+                    qty: qty
+                    };
+        $.ajax({
+                    type: "GET",
+                    url: "{% url 'cart' %}",
+                    data: formData,
+                    success: function(data) {
+                        $("#item-line-total-"+item_id).text(data.line_item_total);
+                        $("#cart-subtotal").text(data.subtotal);
+                    },
+                    error: function(response, error) {
+                        console.log(response);
+                        console.log(error);
+                    }
+        });
     });
 {% endblock %}
 </script>
@@ -14,26 +33,27 @@
         <tr>
             <th>Name</th>
             <th>Quantity</th>
-            <th>Total</th>
-            <th>Remove</th>
+            <th class="text-right">Total</th>
+            <th class="text-center">Remove</th>
         </tr>
         {% for cartitem in object.cartitem_set.all %}
-            <tr>
+            <tr id="item-{{ cartitem.item.id }}">
                 <td>{{ cartitem.item.get_title }}</td>
                 <td>
                     <form method="GET" action="">
                         <input type="hidden" name="item_id" value="{{ cartitem.item.id }}" />
-                        <input type="hidden" name="update" value="true" />
                         <input type="number" name="qty" class="item-qty" value="{{ cartitem.quantity }}" />
+                        <input type="hidden" name="update" value="true" />
                         <input type="submit" class="btn btn-link btn-update" value="Update" style="display:none;" />
                     </form>
                 </td>
-                <td>{{ cartitem.line_item_total }}</td>
-                <td class="text-right"><a href="{{ cartitem.remove_url }}">X</a></td>
+                <td id="item-line-total-{{ cartitem.item.id }}" class="text-right">{{ cartitem.line_item_total }}</td>
+                <td class="text-center"><a href="{{ cartitem.remove_url }}">X</a></td>
             </tr>
         {% endfor %}
         <tr>
-            <td colspan="4" class="text-right">Subtotal: {{ object.subtotal }}</td>
+            <td colspan="3" class="text-right"><strong>Subtotal:</strong> <span id="cart-subtotal">{{ object.subtotal }}</span></td>
+            <td>&nbsp;</td>
         </tr>
     </table>
 
