@@ -1,5 +1,5 @@
-from django.http import HttpResponseRedirect
 from django.views.generic.base import View
+from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import render, get_object_or_404
 
 from products.models import Variation
@@ -8,29 +8,35 @@ from .models import Cart, CartItem
 # Create your views here.
 
 
-class CartView(View):
-    def get(self, request, *args, **kwargs):
-        request.session.set_expiry(300) # 300 sec
-        cart_id = request.session.get('cart_id')
+class CartView(SingleObjectMixin, View):
+    model = Cart
+    template_name = 'carts/cart_view.html'
+
+    def get_object(self, *args, **kwargs):
+        self.request.session.set_expiry(300) # 300 secs
+        cart_id = self.request.session.get('cart_id')
         if cart_id is None:
             cart = Cart()
             cart.save()
             cart_id = cart.id
-            request.session['cart_id'] = cart_id
+            self.request.session['cart_id'] = cart_id
 
         cart = Cart.objects.get(id=cart_id)
-        if request.user.is_authenticated(): # Login user
+        if self.request.user.is_authenticated(): # Login user
             # if the cart is not belong to the current login user, start a new cart
-            if cart.user is not None and cart.user != request.user:
+            if cart.user is not None and cart.user != self.request.user:
                 cart = Cart()
                 cart.save()
-                request.session['cart_id'] = cart.id
-            cart.user = request.user
+                self.request.session['cart_id'] = cart.id
+            cart.user = self.request.user
             cart.save()
         else: # Guest user
             if cart.user:
                 pass # Required Login or remind user to start a new session
+        return cart
 
+    def get(self, request, *args, **kwargs):
+        cart = self.get_object()
         item_id = request.GET.get('item_id')
         delete_item = request.GET.get('delete')
         qty = request.GET.get('qty')
@@ -49,4 +55,8 @@ class CartView(View):
                 cart_item.quantity = qty
                 cart_item.save()
 
-        return HttpResponseRedirect('/')
+        context = {
+            'object': cart,
+        }
+        template = self.template_name
+        return render(request, template, context)

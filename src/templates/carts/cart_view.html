@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {{ object }}
+
+    {{ object.cartitem_set.all }}
+
+    {% for cartitem in object.cartitem_set.all %}
+        {{ cartitem }}
+        {{ cartitem.quantity }}
+    {% endfor %}
+
+{% endblock %}
