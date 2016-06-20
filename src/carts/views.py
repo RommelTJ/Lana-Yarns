@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import render, get_object_or_404
@@ -52,9 +53,14 @@ class CartView(SingleObjectMixin, View):
             if delete_item:
                 cart_item.delete()
             elif qty:
-                cart_item.quantity = qty
-                cart_item.save()
-
+                if qty.isdigit() and int(qty) > 0:
+                    cart_item.save()
+                    cart_item.quantity = qty
+                    cart_item.save()
+                else:
+                    messages.error(request, "The input quantity is not valid. Add to cart operation fails.")
+                    if created:
+                        cart_item.delete()
         context = {
             'object': cart,
         }

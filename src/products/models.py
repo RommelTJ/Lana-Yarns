@@ -77,6 +77,15 @@ class Variation(models.Model):
             html_text = '<span class="sale-price">%s</span> <span class="orig-price">%s</span>' % (self.sale_price, self.price)
         return mark_safe(html_text)
 
+    def remove_from_cart(self):
+        return '%s?item_id=%s&delete=\u2713' % (reverse('cart'), self.id)
+
+    def get_title(self):
+        if self.title == 'Default':
+            return self.product.title
+        else:
+            return '%s - %s' % (self.product.title, self.title)
+
 
 # Product Image
 
