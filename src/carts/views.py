@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 
 from products.models import Variation
 from .models import Cart, CartItem
@@ -52,6 +52,7 @@ class CartView(SingleObjectMixin, View):
             cart_item, created = CartItem.objects.get_or_create(cart=cart, item=item_instance)
             if delete_item:
                 cart_item.delete()
+                cart.update_subtotal()  # Recalculate subtotal
             elif qty:
                 if qty.isdigit() and int(qty) > 0:
                     cart_item.save()
@@ -65,4 +66,8 @@ class CartView(SingleObjectMixin, View):
             'object': cart,
         }
         template = self.template_name
+        # if update quantity from self page, reload page to recalculate the subtotal
+        update_item = request.GET.get('update')
+        if update_item:
+            return redirect('cart')
         return render(request, template, context)

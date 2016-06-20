@@ -23,14 +23,18 @@
                 <td>
                     <form method="GET" action="">
                         <input type="hidden" name="item_id" value="{{ cartitem.item.id }}" />
+                        <input type="hidden" name="update" value="true" />
                         <input type="number" name="qty" class="item-qty" value="{{ cartitem.quantity }}" />
                         <input type="submit" class="btn btn-link btn-update" value="Update" style="display:none;" />
                     </form>
                 </td>
-                <td>{{ cartitem.line_total }}</td>
+                <td>{{ cartitem.line_item_total }}</td>
                 <td class="text-right"><a href="{{ cartitem.remove_url }}">X</a></td>
             </tr>
         {% endfor %}
+        <tr>
+            <td colspan="4" class="text-right">Subtotal: {{ object.subtotal }}</td>
+        </tr>
     </table>
 
 {% endblock %}
