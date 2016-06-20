@@ -28,131 +28,69 @@
 </style>
 
 {% block jumbotron %}
-    {% if not request.user.is_authenticated %}
-        {% if featured_product %}
-            {% if featured_product.as_background %}
-                <!-- Show featured product image as the background of jumbotron -->
-                <div class="jumbotron">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-sm-12 text-center">
-                                <h1>{{ featured_product.title }}</h1>
-                                <p>{{ featured_product.text }}</p>
-                                <p>
-                                    <a class="btn btn-lg btn-primary" href="{{ featured_product.product.get_absolute_url }}" role="button">More Details</a>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            {% else %}
-                <!-- Show featured product image inside the jumbotron -->
-                <div class="jumbotron">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-sm-6 {% if featured_product.text_right %} pull-right {% endif %}">
-                                <h1>{{ featured_product.title }}</h1>
-                                <p>{{ featured_product.text }}</p>
-                                <p>
-                                    <a class="btn btn-lg btn-primary" href="{{ featured_product.product.get_absolute_url }}" role="button">More Details</a>
-                                </p>
-                            </div>
-                            <div class="col-sm-6" >
-                                <img class="img-responsive" src="{{ featured_product.image.url }}" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-
-        {% else %}
-
+    {% if featured_product %}
+        {% if featured_product.as_background %}
+            <!-- Show featured product image as the background of jumbotron -->
             <div class="jumbotron">
                 <div class="container">
                     <div class="row">
-                        <div class="col-sm-6">
-                            <h1>Lana Yarns</h1>
-                            <p>Lana Yarns is the best yarn. Join Us today.</p>
+                        <div class="col-sm-12 text-center">
+                            <h1>{{ featured_product.title }}</h1>
+                            <p>{{ featured_product.text }}</p>
                             <p>
-                                <a class="btn btn-lg btn-default" href="" role="button">Join Us &raquo;</a>
+                                <a class="btn btn-lg btn-primary" href="{{ featured_product.product.get_absolute_url }}" role="button">More Details</a>
                             </p>
-                        </div>
-                        <div class="col-sm-6" >
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/KK9bwTlAvgo" frameborder="0" allowfullscreen></iframe>
                         </div>
                     </div>
                 </div>
             </div>
 
+        {% else %}
+            <!-- Show featured product image inside the jumbotron -->
+            <div class="jumbotron">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-6 {% if featured_product.text_right %} pull-right {% endif %}">
+                            <h1>{{ featured_product.title }}</h1>
+                            <p>{{ featured_product.text }}</p>
+                            <p>
+                                <a class="btn btn-lg btn-primary" href="{{ featured_product.product.get_absolute_url }}" role="button">More Details</a>
+                            </p>
+                        </div>
+                        <div class="col-sm-6" >
+                            <img class="img-responsive" src="{{ featured_product.image.url }}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endif %}
+
+    {% else %}
+
+        <div class="jumbotron">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h1>Lana Yarns</h1>
+                        <p>Lana Yarns is the best yarn. Join Us today.</p>
+                        <p>
+                            <a class="btn btn-lg btn-default" href="" role="button">Join Us &raquo;</a>
+                        </p>
+                    </div>
+                    <div class="col-sm-6" >
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/KK9bwTlAvgo" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     {% endif %}
 {% endblock %}
 
 
 {% block content %}
-    {% if request.user.is_authenticated %}
-
-        <h1>You are logged in!</h1>
-
-        {% if queryset %}
-
-            <h2>Welcome Staff</h2>
-
-            <table class="table">
-                {% for instance in queryset %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ instance.email }}</td>
-                        <td>{{ instance.full_name }}</td>
-                        <td>{{ instance.timestamp|timesince }} ago</td>
-                    </tr>
-                    {% if instance.email == 'abc@gmail.edu' %}
-                        <tr>
-                            <td>is equal</td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-            </table>
-
-        {% endif %}
-
-    {% else %}
-        <div class="row">
-
-            <div class="col-sm-3 pull-right">
-                <p class="lead text-align-center">{{ title }}</p>
-                <form method="POST" action="">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <input class="btn btn-primary" type="submit" value="Sign Up" />
-                </form>
-            </div>
-
-            <div class="col-sm-3">
-                <p class="lead text-align-center">Django &amp; Bootstrap</p>
-                <img src="{% static 'img/marketing1.jpg' %}" class="img-responsive" />
-            </div>
-
-            <div class="col-sm-3">
-                <p class="lead text-align-center">Created for Starters<br/>
-                    <span class="fa-stack fa-lg fa-5x">
-                        <i class="fa fa-comment-o fa-stack-2x"></i>
-                        <i style="color:yellow;" class="fa fa-bolt fa-stack-1x"></i>
-                    </span>
-                </p>
-            </div>
-
-            <div class="col-sm-3">
-                <p class="lead text-align-center">Always Open Source <br/><br/>
-                    <span class="fa-stack fa-lg fa-5x">
-                        <i class="fa fa-circle-o-notch fa-stack-2x"></i>
-                        <i class="fa fa-github fa-stack-1x"></i>
-                    </span>
-                </p>
-            </div>
-
-        </div>
-
-    {% endif %}
+    <div class="row">
+        <h2>Recommended Products</h2>
+        {% include 'products/products.html' with object_list=products %}
+    </div>
 {% endblock %}

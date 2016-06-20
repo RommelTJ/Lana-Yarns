@@ -1,0 +1,8 @@
+<div class="row">
+    {% for object in object_list %}
+        <div class="col-xs-3">
+            {% include 'products/product.thumbnail.html' with product=object price=True %}
+        </div>
+        {% cycle '' '' '' '</div><div class="row">' %}
+    {% endfor %}
+</div>
