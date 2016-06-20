@@ -20,7 +20,7 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart)
-    items = models.ForeignKey(Variation)
+    item = models.ForeignKey(Variation)
     quantity = models.PositiveIntegerField(default=1)
     # line item total
 

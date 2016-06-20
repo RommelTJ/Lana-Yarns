@@ -7,6 +7,7 @@ from .models import CartItem, Cart
 
 class CartItemInline(admin.TabularInline):
     model = CartItem
+    extra = 0
 
 
 class CartAdmin(admin.ModelAdmin):
