@@ -4,6 +4,7 @@
 {% block jquery %}
     $('.item-qty').change(function(){
         // event.preventDefault();
+        var form_obj = $(this).parent("form");
         var item_id = $(this).prev("input[type='hidden']").val();
         var qty = $(this).val();
         var formData = {
@@ -17,10 +18,10 @@
                     success: function(data) {
                         $("#item-line-total-"+item_id).text(data.line_item_total);
                         $("#cart-subtotal").text(data.subtotal);
+                        showFlashMessage("Cart Updated!", 2800);
                     },
                     error: function(response, error) {
-                        console.log(response);
-                        console.log(error);
+                        form_obj.submit();
                     }
         });
     });
