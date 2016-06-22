@@ -8,21 +8,46 @@
         var item_id = $(this).prev("input[type='hidden']").val();
         var qty = $(this).val();
         var formData = {
-                    item_id: item_id,
-                    qty: qty
-                    };
+            item_id: item_id,
+            qty: qty
+        };
         $.ajax({
-                    type: "GET",
-                    url: "{% url 'cart' %}",
-                    data: formData,
-                    success: function(data) {
-                        $("#item-line-total-"+item_id).text(data.line_item_total);
-                        $("#cart-subtotal").text(data.subtotal);
-                        showFlashMessage("Cart Updated!", 2800);
-                    },
-                    error: function(response, error) {
-                        form_obj.submit();
-                    }
+            type: "GET",
+            url: "{% url 'cart' %}",
+            data: formData,
+            success: function(data) {
+                $("#item-line-total-"+item_id).text(data.line_item_total);
+                $("#cart-subtotal").text(data.subtotal);
+                showFlashMessage(data.flash_message, 2800);
+            },
+            error: function(response, error) {
+                form_obj.submit();
+            }
+        });
+    });
+
+    $('.item-del').click(function(){
+        event.preventDefault();
+        var link_obj = $(this);
+        var line_obj = link_obj.closest("tr");
+        var item_id = parseInt(line_obj.attr("id").replace("item-", ""));
+        var formData = {
+            item_id: item_id,
+            delete: "\u2713"
+        };
+        $.ajax({
+            type: "GET",
+            url: "{% url 'cart' %}",
+            data: formData,
+            success: function(data) {
+                showFlashMessage(data.flash_message, 2800);
+                line_obj.fadeOut();
+                $("#cart-subtotal").text(data.subtotal);
+            },
+            error: function(response, error) {
+                link_obj.unbind('click');
+                link_obj.click();
+            }
         });
     });
 {% endblock %}
@@ -49,7 +74,7 @@
                     </form>
                 </td>
                 <td id="item-line-total-{{ cartitem.item.id }}" class="text-right">{{ cartitem.line_item_total }}</td>
-                <td class="text-center"><a href="{{ cartitem.remove_url }}">X</a></td>
+                <td class="text-center"><a href="{{ cartitem.remove_url }}" class="item-del">X</a></td>
             </tr>
         {% endfor %}
         <tr>

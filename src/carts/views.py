@@ -42,6 +42,7 @@ class CartView(SingleObjectMixin, View):
         item_id = request.GET.get('item_id')
         delete_item = request.GET.get('delete', False)
         qty = request.GET.get('qty')
+        flash_message = ""
         # Check order:
         # 1. item_id -- determine the instance
         # 2. delete_item -- determine whether to delete the instance
@@ -65,15 +66,19 @@ class CartView(SingleObjectMixin, View):
                     messages.error(request, "The input quantity is not valid. Add to cart operation fails.")
                     if created:
                         cart_item.delete()
+            # Check operation status
+            item_added = cart_item and created
+            if item_added:
+                flash_message = "Item successfully added."
+            elif delete_item:
+                flash_message = "Item removed successfully."
+            elif item_updated:
+                flash_message = "Quantity has been updated successfully."
         if request.is_ajax():
             cart.update_subtotal() # Refresh data for Ajax
-            item_added = cart_item and created
             jsondata = {
-                # For product detail view
-                'item_added': item_added,
-                'item_updated': item_updated,
-                'item_deleted': delete_item,
                 # For cart detail view
+                'flash_message': flash_message,
                 'line_item_total': cart_item.line_item_total,
                 'subtotal': cart.subtotal,
             }

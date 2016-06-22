@@ -21,6 +21,7 @@
         }
         $(".variation_select").change(setPrice);
 
+        // Ajax add to cart
         $("#submit-btn").click(function(event) {
             event.preventDefault();
             var formData = $("#add-form").serialize();
@@ -29,11 +30,7 @@
                 url: "{% url 'cart' %}",
                 data: formData,
                 success: function(data) {
-                    if (data.item_added) {
-                        showFlashMessage("Product Added!", 2800);
-                    } else if (data.item_updated) {
-                        showFlashMessage("Product Updated!", 2800);
-                    }
+                    showFlashMessage(data.flash_message, 2800);
                 },
                 error: function(response, error) {
                     $("#add-form").submit();
