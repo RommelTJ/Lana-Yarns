@@ -75,12 +75,15 @@ class CartView(SingleObjectMixin, View):
             elif item_updated:
                 flash_message = "Quantity has been updated successfully."
         if request.is_ajax():
-            cart.update_subtotal() # Refresh data for Ajax
+            # Refresh data for Ajax request
+            cart.update_subtotal()
+            cartitem_count = cart.cartitem_set.count()
             jsondata = {
                 # For cart detail view
                 'flash_message': flash_message,
                 'line_item_total': cart_item.line_item_total,
                 'subtotal': cart.subtotal,
+                'cartitem_count': cartitem_count,
             }
             return JsonResponse(jsondata)
 

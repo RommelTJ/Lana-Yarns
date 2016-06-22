@@ -41,8 +41,13 @@
             data: formData,
             success: function(data) {
                 showFlashMessage(data.flash_message, 2800);
-                line_obj.fadeOut();
-                $("#cart-subtotal").text(data.subtotal);
+                if (data.cartitem_count == 0) {
+                    var template = "{% filter escapejs %}{% include 'carts/empty_cart.html' %}{% endfilter %}";
+                    $(".main-content").html(template);
+                } else {
+                    line_obj.fadeOut();
+                    $("#cart-subtotal").text(data.subtotal);
+                }
             },
             error: function(response, error) {
                 link_obj.unbind('click');
@@ -55,7 +60,11 @@
 
 {% block content %}
 
-    <table class="table">
+    <div class="container main-content">
+    {% if object.cartitem_set.count == 0 %}
+        {% include 'carts/empty_cart.html' %}
+    {% else %}
+        <table class="table">
         <tr>
             <th>Name</th>
             <th>Quantity</th>
@@ -81,6 +90,8 @@
             <td colspan="3" class="text-right"><strong>Subtotal:</strong> <span id="cart-subtotal">{{ object.subtotal }}</span></td>
             <td>&nbsp;</td>
         </tr>
-    </table>
+        </table>
+    {% endif %}
+    </div>
 
 {% endblock %}
