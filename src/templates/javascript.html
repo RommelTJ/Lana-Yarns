@@ -7,3 +7,23 @@
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
     <script src="{% static 'js/custom.js' %}"></script>
+    <script type="text/javascript">
+        function updateCartItemCount(){
+            var badge = $("#cart-count-badge");
+            $.ajax({
+                type: "GET",
+                url: "{% url 'cartitem_count' %}",
+                success: function(data){
+                    badge.text(data.cartitem_count);
+                },
+                error: function(response, error){
+                    console.log(response);
+                    console.log(error);
+                }
+            });
+        }
+
+        $(document).ready(function(){
+            updateCartItemCount();
+        })
+    </script>

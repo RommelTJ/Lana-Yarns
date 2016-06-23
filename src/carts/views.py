@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import render, get_object_or_404, redirect
@@ -8,6 +8,22 @@ from products.models import Variation
 from .models import Cart, CartItem
 
 # Create your views here.
+
+
+class ItemCountView(View):
+
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax():
+            cart_id = self.request.session.get('cart_id')
+            if cart_id:
+                cart = Cart.objects.get(id=cart_id)
+                cartitem_count = cart.cartitem_set.count()
+            else:
+                cartitem_count = 0
+            self.request.session['cartitem_count'] = cartitem_count
+            return JsonResponse({'cartitem_count': cartitem_count})
+        else:
+            raise Http404
 
 
 class CartView(SingleObjectMixin, View):

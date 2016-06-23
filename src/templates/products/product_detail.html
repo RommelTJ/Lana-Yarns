@@ -31,6 +31,7 @@
                 data: formData,
                 success: function(data) {
                     showFlashMessage(data.flash_message, 2800);
+                    updateCartItemCount();
                 },
                 error: function(response, error) {
                     $("#add-form").submit();
