@@ -17,7 +17,9 @@
             data: formData,
             success: function(data) {
                 $("#item-line-total-"+item_id).text(data.line_item_total);
-                $("#cart-subtotal").text(data.subtotal);
+                $("#cart-subtotal").text(data.cart_subtotal);
+                $("#cart-tax-total").text(data.cart_tax_total);
+                $("#cart-total").text(data.cart_total);
                 showFlashMessage(data.flash_message, 2800);
             },
             error: function(response, error) {
@@ -47,7 +49,9 @@
                     $(".main-content").html(template);
                 } else {
                     line_obj.fadeOut();
-                    $("#cart-subtotal").text(data.subtotal);
+                    $("#cart-subtotal").text(data.cart_subtotal);
+                    $("#cart-tax-total").text(data.cart_tax_total);
+                    $("#cart-total").text(data.cart_total);
                 }
             },
             error: function(response, error) {
@@ -89,6 +93,14 @@
         {% endfor %}
         <tr>
             <td colspan="3" class="text-right"><strong>Subtotal:</strong> <span id="cart-subtotal">{{ object.subtotal }}</span></td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" class="text-right"><strong>Tax (Estimated):</strong> <span id="cart-tax-total">{{ object.tax_total }}</span></td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" class="text-right"><strong>Total:</strong> <span id="cart-total">{{ object.total }}</span></td>
             <td>&nbsp;</td>
         </tr>
         </table>

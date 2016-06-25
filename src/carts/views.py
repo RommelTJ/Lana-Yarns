@@ -95,10 +95,12 @@ class CartView(SingleObjectMixin, View):
             cart.update_subtotal()
             cartitem_count = cart.cartitem_set.count()
             jsondata = {
-                # For cart detail view
                 'flash_message': flash_message,
+                # For cart detail view only
                 'line_item_total': cart_item.line_item_total,
-                'subtotal': cart.subtotal,
+                'cart_subtotal': cart.subtotal,
+                'cart_tax_total': cart.tax_total,
+                'cart_total': cart.total,
                 'cartitem_count': cartitem_count,
             }
             return JsonResponse(jsondata)
