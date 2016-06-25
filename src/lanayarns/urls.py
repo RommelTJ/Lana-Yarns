@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^contact/$', newsletter_views.contact, name='contact'),
     url(r'^about/$', main_views.about, name='about'),
     url(r'^cart/', include('carts.urls')),
+    url(r'^checkout/', include('carts.urls_checkout')),
     url(r'^products/', include('products.urls')),
     url(r'^categories/', include('products.urls_categories')),
 

@@ -1,7 +1,8 @@
 from django.contrib import messages
+from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse, Http404
 from django.views.generic.base import View
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.detail import SingleObjectMixin, DetailView
 from django.shortcuts import render, get_object_or_404, redirect
 
 from products.models import Variation
@@ -31,7 +32,7 @@ class CartView(SingleObjectMixin, View):
     template_name = 'carts/cart_view.html'
 
     def get_object(self, *args, **kwargs):
-        self.request.session.set_expiry(300) # 300 secs
+        self.request.session.set_expiry(900) # 900 secs
         cart_id = self.request.session.get('cart_id')
         if cart_id is None:
             cart = Cart()
@@ -114,3 +115,25 @@ class CartView(SingleObjectMixin, View):
         if update_item:
             return redirect('cart')
         return render(request, template, context)
+
+
+class CheckoutView(DetailView):
+    model = Cart
+    template_name = 'carts/checkout_view.html'
+
+    def get_object(self, *args, **kwargs):
+        cart_id = self.request.session.get('cart_id')
+        if cart_id is None:
+            return redirect('cart')
+        cart = Cart.objects.get(id=cart_id)
+        return cart
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(CheckoutView, self).get_context_data(*args, **kwargs)
+        if self.request.user.is_authenticated():
+            context['user_can_continue'] = True
+        if not self.request.user.is_authenticated():
+            context['user_can_continue'] = False
+            context['login_form'] = AuthenticationForm()
+            context['next_url'] = self.request.build_absolute_uri()
+        return context
