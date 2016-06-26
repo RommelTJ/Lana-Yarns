@@ -1,10 +1,14 @@
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.urlresolvers import reverse
 from django.http import JsonResponse, Http404
 from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin, DetailView
+from django.views.generic.edit import FormMixin
 from django.shortcuts import render, get_object_or_404, redirect
 
+from orders.forms import GuestCheckoutForm
+from orders.models import UserCheckout
 from products.models import Variation
 from .models import Cart, CartItem
 
@@ -117,9 +121,10 @@ class CartView(SingleObjectMixin, View):
         return render(request, template, context)
 
 
-class CheckoutView(DetailView):
+class CheckoutView(DetailView, FormMixin):
     model = Cart
     template_name = 'carts/checkout_view.html'
+    form_class = GuestCheckoutForm
 
     def get_object(self, *args, **kwargs):
         cart_id = self.request.session.get('cart_id')
@@ -130,10 +135,26 @@ class CheckoutView(DetailView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(CheckoutView, self).get_context_data(*args, **kwargs)
-        if self.request.user.is_authenticated():
+        user_checkout_id = self.request.session.get('user_checkout_id')
+        if self.request.user.is_authenticated() or user_checkout_id:
             context['user_can_continue'] = True
-        if not self.request.user.is_authenticated():
+        else:
             context['user_can_continue'] = False
             context['login_form'] = AuthenticationForm()
             context['next_url'] = self.request.build_absolute_uri()
+        context['form'] = self.get_form()
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()  # Assign the object to the view
+        form = self.get_form()
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            user_checkout, created = UserCheckout.objects.get_or_create(email=email)
+            self.request.session['user_checkout_id'] = user_checkout.id
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('checkout')
