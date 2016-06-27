@@ -142,6 +142,11 @@ class CheckoutView(DetailView, FormMixin):
             context['user_can_continue'] = False
             context['login_form'] = AuthenticationForm()
             context['next_url'] = self.request.build_absolute_uri()
+        if self.request.user.is_authenticated():
+            user_checkout, created = UserCheckout.objects.get_or_create(email=self.request.user.email)
+            if created:  # Do not validate if the user and the email match
+                user_checkout.user = self.request.user
+                user_checkout.save()
         context['form'] = self.get_form()
         return context
 
