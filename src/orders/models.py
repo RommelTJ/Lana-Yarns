@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import models
 
+from carts.models import Cart
+
 # Create your models here.
 
 ADDRESS_TYPE = (
@@ -36,11 +38,13 @@ class UserAddress(models.Model):
         verbose_name_plural = "User Addresses"
 
 
-# class Order(models.Model):
-    # cart
-    # usercheckout
-    # shipping address
-    # billing address
-    # shipping total price
-    # order total price
-    # order number
+class Order(models.Model):
+    cart = models.OneToOneField(Cart)
+    user_checkout = models.ForeignKey(UserCheckout)
+    shipping_address = models.ForeignKey(UserAddress, related_name='shipping_address')
+    billing_address = models.ForeignKey(UserAddress, related_name='billing_address')
+    shipping_total_price = models.DecimalField(decimal_places=2, max_digits=50, default=0.00)
+    order_price = models.DecimalField(decimal_places=2, max_digits=50, default=0.00)
+
+    def __unicode__(self):
+        return str(self.cart.id)
