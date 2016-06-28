@@ -33,6 +33,9 @@ class UserAddress(models.Model):
     def __unicode__(self):
         return self.street
 
+    def get_address(self):
+        return '%s\n%s, %s %s' % (self.street, self.city, self.state, self.zipcode)
+
     class Meta:
         verbose_name = "User Address"
         verbose_name_plural = "User Addresses"
@@ -40,9 +43,9 @@ class UserAddress(models.Model):
 
 class Order(models.Model):
     cart = models.OneToOneField(Cart)
-    user_checkout = models.ForeignKey(UserCheckout)
-    shipping_address = models.ForeignKey(UserAddress, related_name='shipping_address')
-    billing_address = models.ForeignKey(UserAddress, related_name='billing_address')
+    user_checkout = models.ForeignKey(UserCheckout, null=True)
+    shipping_address = models.ForeignKey(UserAddress, related_name='shipping_address', null=True)
+    billing_address = models.ForeignKey(UserAddress, related_name='billing_address', null=True)
     shipping_total_price = models.DecimalField(decimal_places=2, max_digits=50, default=0.00)
     order_price = models.DecimalField(decimal_places=2, max_digits=50, default=0.00)
 

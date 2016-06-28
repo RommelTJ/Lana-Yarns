@@ -4,7 +4,53 @@
 
 {% block content %}
 
-    {% if not user_can_continue %}
+    {% if user_can_continue %}
+
+        <div class="row">
+            <div class="col-sm-4 col-sm-offset-4">
+                <p class="lead">
+                    Order Summary
+                </p>
+                <table class="table">
+                    <tr>
+                        <td>
+                            {{ order.cart.cartitem_set.count }} Cart item(s): <br/>
+                            {% for cartitem in order.cart.cartitem_set.all %}
+                                &emsp;&emsp;<bold>{{ cartitem.item.get_title }}</bold><br/>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Cart total: {{ order.cart.total }}</td>
+                    </tr>
+                    <tr>
+                        <td>&emsp;&emsp;-- Subtotal: {{ order.cart.subtotal }}</td>
+                    </tr>
+                    <tr>
+                        <td>&emsp;&emsp;-- Subtotal: {{ order.cart.tax_total }}</td>
+                    </tr>
+                    <tr>
+                        <td>Cart total: {{ order.shipping_total_price }}</td>
+                    </tr>
+                    <tr>
+                        <td>Cart total: {{ order.order_price }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 col-sm-offset-4">
+                <p>Shipping to:</p>
+                {{ order.shipping_address.get_address }}<br/>
+                <p>Billing to:</p>
+                {{ order.billing_address.get_address }}<br/>
+                <br/>
+                <p>Complete Order</p>
+            </div>
+        </div>
+
+    {% else %}
 
         <div class="row">
             <div class="col-sm-6">

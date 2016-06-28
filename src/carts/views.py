@@ -129,9 +129,33 @@ class CheckoutView(DetailView, FormMixin):
     def get_object(self, *args, **kwargs):
         cart_id = self.request.session.get('cart_id')
         if cart_id is None:
-            return redirect('cart')
+            cart = Cart()
+            cart.save()
+            cart_id = cart.id
+            self.request.session['cart_id'] = cart_id
         cart = Cart.objects.get(id=cart_id)
+        if self.request.user.is_authenticated(): # Login user
+            # if the cart is not belong to the current login user, start a new cart
+            if cart.user is not None and cart.user != self.request.user:
+                cart = Cart()
+                cart.save()
+                self.request.session['cart_id'] = cart.id
+            cart.user = self.request.user
+            cart.save()
+        else: # Guest user
+            if cart.user:
+                pass # Required Login or remind user to start a new session
         return cart
+
+    def get_order(self, *args, **kwargs):
+        cart = self.get_object()
+        order_id = self.request.session.get('order_id')
+        if order_id:
+            new_order = Order.objects.get(id=order_id)
+        else:
+            new_order = Order.objects.create(cart=cart)
+            self.request.session['order_id'] = new_order.id
+        return new_order
 
     def get_context_data(self, *args, **kwargs):
         context = super(CheckoutView, self).get_context_data(*args, **kwargs)
@@ -147,6 +171,8 @@ class CheckoutView(DetailView, FormMixin):
             if created:  # Do not validate if the user and the email match
                 user_checkout.user = self.request.user
                 user_checkout.save()
+            self.request.session['user_checkout_id'] = user_checkout.id
+        context['order'] = self.get_order()
         context['form'] = self.get_form()
         return context
 
@@ -167,32 +193,36 @@ class CheckoutView(DetailView, FormMixin):
     def get(self, request, *args, **kwargs):
         get_data = super(CheckoutView, self).get(request, *args, **kwargs)
 
-        # # 1. Get shopping cart
-        # cart = self.get_object()
-        # user_checkout_id = request.session.get('user_checkout_id')
-        # if user_checkout_id:
-        #     user_checkout = UserCheckout.objects.get(id=user_checkout_id)
-        # shipping_address_id = request.session.get('shipping_address_id')
-        # billing_address_id = request.session.get('billing_address_id')
+        # 1. Get shopping cart
+        cart = self.get_object()
+        if cart.cartitem_set.count() == 0:
+            return redirect('cart')
 
-        # # 2. Get shipping address and billing address
-        # if shipping_address_id is None or billing_address_id is None:
-        #     return redirect('checkout_address')
-        # shipping_address = UserAddress.objects.get(id=shipping_address_id)
-        # billing_address = UserAddress.objects.get(id=billing_address_id)
+        # 2. Get order
+        new_order = self.get_order()
+        if new_order is None:
+            return redirect('cart')
 
-        # # 3. Get order
-        # order_id = request.session.get('order_id')
-        # if order_id:
-        #     new_order = Order.objects.get(id=order_id)
-        # else:
-        #     new_order = Order()
-        #     new_order.save()
-        #     request.session['order_id'] = new_order.id
+        # 3. Get user_checkout
+        user_checkout_id = request.session.get('user_checkout_id')
+        if user_checkout_id:
+            user_checkout = UserCheckout.objects.get(id=user_checkout_id)
+        else:
+            # If user_checkout_id is None, stop continuing gathering order data
+            return get_data
 
-        # new_order.cart = cart
-        # new_order.user_checkout = user_checkout
-        # new_order.shipping_address = shipping_address
-        # new_order.billing_address = billing_address
-        # new_order.save()
+        # 4. Get shipping address and billing address
+        shipping_address_id = request.session.get('shipping_address_id')
+        billing_address_id = request.session.get('billing_address_id')
+        if shipping_address_id is None or billing_address_id is None:
+            return redirect('order_address')
+        shipping_address = UserAddress.objects.get(id=shipping_address_id)
+        billing_address = UserAddress.objects.get(id=billing_address_id)
+
+        # 5. Save the order
+        new_order.user_checkout = user_checkout
+        new_order.shipping_address = shipping_address
+        new_order.billing_address = billing_address
+        new_order.save()
+
         return get_data

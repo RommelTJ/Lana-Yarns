@@ -69,13 +69,16 @@
     {% if object.cartitem_set.count == 0 %}
         {% include 'carts/empty_cart.html' %}
     {% else %}
+        <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+        <h1>Your Cart</h1>
         <table class="table">
-        <tr>
-            <th>Name</th>
-            <th>Quantity</th>
-            <th class="text-right">Total</th>
-            <th class="text-center">Remove</th>
-        </tr>
+            <tr>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th class="text-right">Total</th>
+                <th class="text-center">Remove</th>
+            </tr>
         {% for cartitem in object.cartitem_set.all %}
             <tr id="item-{{ cartitem.item.id }}">
                 <td>{{ cartitem.item.get_title }}</td>
@@ -91,19 +94,25 @@
                 <td class="text-center"><a href="{{ cartitem.remove_url }}" class="item-del">X</a></td>
             </tr>
         {% endfor %}
-        <tr>
-            <td colspan="3" class="text-right"><strong>Subtotal:</strong> <span id="cart-subtotal">{{ object.subtotal }}</span></td>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td colspan="3" class="text-right"><strong>Tax (Estimated):</strong> <span id="cart-tax-total">{{ object.tax_total }}</span></td>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td colspan="3" class="text-right"><strong>Total:</strong> <span id="cart-total">{{ object.total }}</span></td>
-            <td>&nbsp;</td>
-        </tr>
+            <tr>
+                <td colspan="3" class="text-right"><strong>Subtotal:</strong> <span id="cart-subtotal">{{ object.subtotal }}</span></td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right"><strong>Tax (Estimated):</strong> <span id="cart-tax-total">{{ object.tax_total }}</span></td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right"><strong>Total:</strong> <span id="cart-total">{{ object.total }}</span></td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right"><a class="btn btn-warning" href="{% url 'checkout' %}">Checkout</a></td>
+                <td>&nbsp;</td>
+            </tr>
         </table>
+        </div>
+        </div>
     {% endif %}
     </div>
 

@@ -3,10 +3,14 @@
 
 {% block content %}
 
-    <form method="POST" action="">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <input type="submit" value="Select" />
-    </form>
+    <div class="row">
+        <div class="col-sm-4 col-sm-offset-4">
+            <p class="lead">Select addresses for your order.</p>
+            <form method="POST" action="">{% csrf_token %}
+                {{ form|crispy }}
+                <input class="btn btn-default" type="submit" value="Select" />
+            </form>
+        </div>
+    </div>
 
 {% endblock %}
