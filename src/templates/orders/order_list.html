@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% for object in object_list %}
+        {{ object.cart.cartitem_set.all }}
+    {% endfor %}
+{% endblock %}

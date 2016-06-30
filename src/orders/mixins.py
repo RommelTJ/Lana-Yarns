@@ -1,5 +1,14 @@
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
 from carts.models import Cart
-from .models import Order
+from .models import Order, UserCheckout
+
+
+class LoginRequiredMixin(object):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
 
 class CartOrderMixin(object):
@@ -35,3 +44,21 @@ class CartOrderMixin(object):
             if cart.user:
                 pass # Required Login or remind user to start a new session
         return cart
+
+
+class UserCheckoutMixin(object):
+
+    def get_user_checkout(self, *args, **kwargs):
+        user_checkout_id = self.request.session.get('user_checkout_id')
+        if self.request.user.is_authenticated():
+            user_checkout, created = UserCheckout.objects.get_or_create(email=self.request.user.email)
+            if created:  # Do not validate if the user and the email match
+                user_checkout.user = self.request.user
+                user_checkout.save()
+            if user_checkout_id != user_checkout.id:
+                self.request.session['user_checkout_id'] = user_checkout.id
+        elif user_checkout_id:
+            user_checkout = UserCheckout.objects.get(id=user_checkout_id)
+        else:
+            return None
+        return user_checkout

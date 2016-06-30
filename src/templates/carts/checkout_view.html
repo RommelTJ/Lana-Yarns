@@ -16,24 +16,24 @@
                         <td>
                             <span class="lead">{{ order.cart.cartitem_set.count }} Cart item(s):</span> <br/>
                             {% for cartitem in order.cart.cartitem_set.all %}
-                                &emsp;&emsp;<strong>{{ cartitem.item.get_title }}</strong><br/>
+                                &emsp;&emsp;<b>{{ cartitem.item.get_title }}</b><br/>
                             {% endfor %}
                         </td>
                     </tr>
                     <tr>
-                        <td><strong>Cart total:</strong> {{ order.cart.total }}</td>
+                        <td><b>Cart total:</b> {{ order.cart.total }}</td>
                     </tr>
                     <tr>
-                        <td>&emsp;&emsp;-- <strong>Subtotal:</strong> {{ order.cart.subtotal }}</td>
+                        <td>&emsp;&emsp;-- <b>Subtotal:</b> {{ order.cart.subtotal }}</td>
                     </tr>
                     <tr>
-                        <td>&emsp;&emsp;-- <strong>Tax:</strong> {{ order.cart.tax_total }}</td>
+                        <td>&emsp;&emsp;-- <b>Tax:</b> {{ order.cart.tax_total }}</td>
                     </tr>
                     <tr>
-                        <td><strong>Shipping Fee:</strong> {{ order.shipping_total_price }}</td>
+                        <td><b>Shipping Fee:</b> {{ order.shipping_total_price }}</td>
                     </tr>
                     <tr>
-                        <td><strong>Total:</strong> {{ order.order_price }}</td>
+                        <td><b>Total:</b> {{ order.order_price }}</td>
                     </tr>
                 </table>
             </div>
@@ -41,15 +41,21 @@
 
         <div class="row">
             <div class="col-sm-4 col-sm-offset-4">
-                <p><strong>Shipping to:</strong></p>
+                <p><b>Shipping to:</b></p>
                 <p>&emsp;&emsp;{{ order.shipping_address.get_address }}</p>
-                <p><strong>Billing to:</strong></p>
+                <p><b>Billing to:</b></p>
                 <p>&emsp;&emsp;{{ order.billing_address.get_address }}</p>
                 <p>
                     <a href="{% url 'order_address' %}">Change Address</a>
                 </p>
                 <br/>
-                <p>Complete Order</p>
+                <form method="POST" action="{% url 'checkout_final' %}">
+                    {% csrf_token %}
+                    <p>
+                        <input type="hidden" name="payment_token" value="ABC" />
+                        <b><button type="submit">Complete Order</button></b>
+                    </p>
+                </form>
             </div>
         </div>
 

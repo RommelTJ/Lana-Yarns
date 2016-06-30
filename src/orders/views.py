@@ -3,15 +3,16 @@ from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView, FormView
+from django.views.generic.list import ListView
 
 from .forms import AddressForm, UserAddressForm
-from .mixins import CartOrderMixin
-from .models import UserCheckout, UserAddress
+from .mixins import LoginRequiredMixin, CartOrderMixin, UserCheckoutMixin
+from .models import UserCheckout, UserAddress, Order
 
 # Create your views here.
 
 
-class AddressSelectFormView(FormView, CartOrderMixin):
+class AddressSelectFormView(FormView, CartOrderMixin, UserCheckoutMixin):
     form_class = AddressForm
     template_name = 'orders/address_select.html'
 
@@ -26,17 +27,8 @@ class AddressSelectFormView(FormView, CartOrderMixin):
         return super(AddressSelectFormView, self).dispatch(*args, **kwargs)
 
     def get_addresses(self, *args, **kwargs):
-        user_checkout_id = self.request.session.get('user_checkout_id')
-        if self.request.user.is_authenticated():
-            user_checkout, created = UserCheckout.objects.get_or_create(email=self.request.user.email)
-            if created:  # Do not validate if the user and the email match
-                user_checkout.user = self.request.user
-                user_checkout.save()
-            if user_checkout_id != user_checkout.id:
-                self.request.session['user_checkout_id'] = user_checkout.id
-        elif user_checkout_id:
-            user_checkout = UserCheckout.objects.get(id=user_checkout_id)
-        else:
+        user_checkout = self.get_user_checkout()
+        if user_checkout is None:
             # Return empty UserAddress queryset
             return UserAddress.objects.none(), UserAddress.objects.none()
         address_queryset = UserAddress.objects.filter(user_checkout=user_checkout)
@@ -65,24 +57,9 @@ class AddressSelectFormView(FormView, CartOrderMixin):
         return reverse('checkout')
 
 
-class UserAddressCreateView(CreateView):
+class UserAddressCreateView(UserCheckoutMixin, CreateView):
     form_class = UserAddressForm
     template_name = 'forms.html'
-
-    def get_user_checkout(self):
-        user_checkout_id = self.request.session.get('user_checkout_id')
-        if self.request.user.is_authenticated():
-            user_checkout, created = UserCheckout.objects.get_or_create(email=self.request.user.email)
-            if created:  # Do not validate if the user and the email match
-                user_checkout.user = self.request.user
-                user_checkout.save()
-            if user_checkout_id != user_checkout.id:
-                self.request.session['user_checkout_id'] = user_checkout.id
-        elif user_checkout_id:
-            user_checkout = UserCheckout.objects.get(id=user_checkout_id)
-        else:
-            return None
-        return user_checkout
 
     def form_valid(self, form, *args, **kwargs):
         user_checkout = self.get_user_checkout()
@@ -94,3 +71,10 @@ class UserAddressCreateView(CreateView):
 
     def get_success_url(self, *args, **kwargs):
         return reverse('order_address')
+
+class OrderListView(LoginRequiredMixin, UserCheckoutMixin, ListView):
+    queryset = Order.objects.all()
+
+    def get_queryset(self):
+        user_checkout = self.get_user_checkout()
+        return super(OrderListView, self).get_queryset().filter(user_checkout=user_checkout)
