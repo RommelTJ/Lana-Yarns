@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import render, redirect
+from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, FormView
 from django.views.generic.list import ListView
 
@@ -72,9 +73,22 @@ class UserAddressCreateView(UserCheckoutMixin, CreateView):
     def get_success_url(self, *args, **kwargs):
         return reverse('order_address')
 
+
 class OrderListView(LoginRequiredMixin, UserCheckoutMixin, ListView):
     queryset = Order.objects.all()
 
     def get_queryset(self):
         user_checkout = self.get_user_checkout()
         return super(OrderListView, self).get_queryset().filter(user_checkout=user_checkout)
+
+
+class OrderDetailView(UserCheckoutMixin, DetailView):
+    model = Order
+
+    def dispatch(self, request, *args, **kwargs):
+        user_checkout = self.get_user_checkout()
+        obj = self.get_object()
+        if user_checkout is not None and obj.user_checkout == user_checkout:
+            return super(OrderDetailView, self).dispatch(request, *args, **kwargs)
+        else:
+            raise Http404

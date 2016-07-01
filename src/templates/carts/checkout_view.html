@@ -6,49 +6,10 @@
 
     {% if user_can_continue %}
 
-        <div class="row">
-            <div class="col-sm-4 col-sm-offset-4">
-                <p class="lead">
-                    Order Summary
-                </p>
-                <table class="table">
-                    <tr>
-                        <td>
-                            <span class="lead">{{ order.cart.cartitem_set.count }} Cart item(s):</span> <br/>
-                            {% for cartitem in order.cart.cartitem_set.all %}
-                                &emsp;&emsp;<b>{{ cartitem.item.get_title }}</b><br/>
-                            {% endfor %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>Cart total:</b> {{ order.cart.total }}</td>
-                    </tr>
-                    <tr>
-                        <td>&emsp;&emsp;-- <b>Subtotal:</b> {{ order.cart.subtotal }}</td>
-                    </tr>
-                    <tr>
-                        <td>&emsp;&emsp;-- <b>Tax:</b> {{ order.cart.tax_total }}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Shipping Fee:</b> {{ order.shipping_total_price }}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Total:</b> {{ order.order_price }}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+        {% include 'orders/order_summary.html' with order=order static_page=False %}
 
         <div class="row">
             <div class="col-sm-4 col-sm-offset-4">
-                <p><b>Shipping to:</b></p>
-                <p>&emsp;&emsp;{{ order.shipping_address.get_address }}</p>
-                <p><b>Billing to:</b></p>
-                <p>&emsp;&emsp;{{ order.billing_address.get_address }}</p>
-                <p>
-                    <a href="{% url 'order_address' %}">Change Address</a>
-                </p>
-                <br/>
                 <form method="POST" action="{% url 'checkout_final' %}">
                     {% csrf_token %}
                     <p>

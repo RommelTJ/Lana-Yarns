@@ -2,6 +2,6 @@
 
 {% block content %}
     {% for object in object_list %}
-        {{ object.cart.cartitem_set.all }}
+        <b><a href="{% url 'order_detail' pk=object.pk %}">Order {{ object.pk }}</a>: </b>{{ object.cart.cartitem_set.all }}
     {% endfor %}
 {% endblock %}

@@ -205,11 +205,8 @@ class CheckoutFinalView(CartOrderMixin, View):
             order.mark_completed()
             del request.session['cart_id']
             del request.session['order_id']
-        if request.user.is_authenticated():
-            return redirect('orders')
-        else:
-            messages.success(request, 'Your order has been completed.')
-            return redirect('checkout')
+        messages.success(request, 'Your order has been completed. Thank you for your order.')
+        return redirect('order_detail', pk=order.pk)
 
     def get(self, request, *args, **kwargs):
         return redirect('orders')
