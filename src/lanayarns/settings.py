@@ -162,3 +162,12 @@ REGISTRATION_AUTO_LOGIN = True
 SITE_ID = 1
 
 LOGIN_REDIRECT_URL = '/'
+
+#Braintree Payment Details
+try:
+    from .settings_braintree import *
+except:
+    BRAINTREE_PUBLIC = config.get('braintree', 'BRAINTREE_PUBLIC')
+    BRAINTREE_PRIVATE = config.get('braintree', 'BRAINTREE_PRIVATE')
+    BRAINTREE_MERCHANT_ID = config.get('braintree', 'BRAINTREE_MERCHANT_ID')
+    BRAINTREE_ENVIRONMENT = config.get('braintree', 'BRAINTREE_ENVIRONMENT')

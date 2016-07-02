@@ -21,7 +21,7 @@ ORDER_STATUS_CHOICES = (
 class UserCheckout(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True) # optional
     email = models.EmailField(unique=True) # required
-    #merchant_id
+    braintree_id = models.CharField(max_length=120, null=True, blank=True)
 
     def __unicode__(self):
         return self.email
