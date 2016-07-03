@@ -4,6 +4,8 @@
 
 {% block content %}
 
+    {# client_token #}
+
     {% if user_can_continue %}
 
         {% include 'orders/order_summary.html' with order=order static_page=False %}

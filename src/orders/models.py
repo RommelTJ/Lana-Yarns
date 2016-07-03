@@ -3,9 +3,16 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import models
 
+import braintree
 from carts.models import Cart
 
 # Create your models here.
+
+if settings.DEBUG:
+    braintree.Configuration.configure(braintree.Environment.Sandbox,
+                                      merchant_id=settings.BRAINTREE_MERCHANT_ID,
+                                      public_key=settings.BRAINTREE_PUBLIC,
+                                      private_key=settings.BRAINTREE_PRIVATE)
 
 ADDRESS_TYPE = (
     ('billing', 'Billing'),
@@ -25,6 +32,23 @@ class UserCheckout(models.Model):
 
     def __unicode__(self):
         return self.email
+
+    def get_braintree_id(self):
+        if not self.braintree_id:
+            result = braintree.Customer.create({
+                'email': self.email,
+                })
+            if result.is_success:
+                self.braintree_id = result.customer.id
+                self.save()
+
+    def get_client_token(self):
+        self.get_braintree_id()
+        customer_id = self.braintree_id
+        client_token = braintree.ClientToken.generate({
+            'customer_id': customer_id
+            })
+        return client_token
 
 
 class UserAddress(models.Model):

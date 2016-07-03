@@ -4,25 +4,11 @@ from django.conf import settings
 from django.db.models.signals import pre_save, post_save
 from decimal import Decimal
 
-import braintree
 from .models import UserCheckout, Order
 
 
-if settings.DEBUG:
-    braintree.Configuration.configure(braintree.Environment.Sandbox,
-                                      merchant_id=settings.BRAINTREE_MERCHANT_ID,
-                                      public_key=settings.BRAINTREE_PUBLIC,
-                                      private_key=settings.BRAINTREE_PRIVATE)
-
-
 def update_braintree_id(sender, instance, created, *args, **kwargs):
-    if not instance.braintree_id:
-        result = braintree.Customer.create({
-            'email': instance.email,
-            })
-        if result.is_success:
-            instance.braintree_id = result.customer.id
-            instance.save()
+    instance.get_braintree_id()
 
 post_save.connect(update_braintree_id, sender=UserCheckout)
 
