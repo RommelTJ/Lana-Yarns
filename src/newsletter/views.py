@@ -34,6 +34,7 @@ def home(request):
 
     return render(request, "home.html", context)
 
+
 def contact(request):
     title = 'Contact Us'
     title_align_center = True
@@ -44,7 +45,7 @@ def contact(request):
         form_full_name = form.cleaned_data.get("full_name")
         subject = 'Site contact form'
         from_email = settings.EMAIL_HOST_USER
-        to_email = [from_email, 'youotheremail@email.com']
+        to_email = [from_email, 'lana@lanayarns.com']
         contact_message = "%s: %s via %s"%(
             form_full_name,
             form_message,
