@@ -28,7 +28,8 @@
           <ul class="nav navbar-nav navbar-right">
               <li><a href="{% url 'cart' %}"><i class="fa fa-shopping-cart fa-navbar-cart"></i> <span id="cart-count-badge" class="badge">{{ request.session.cartitem_count }}</span></a></li>
           {% if request.user.is_authenticated %}
-            <li><a href="{% url 'auth_logout' %}">Logout</a></li>
+              <li><a href="{% url 'orders' %}">Orders</a></li>
+              <li><a href="{% url 'auth_logout' %}">Logout</a></li>
           {% else %}
               <li><a href="{% url 'registration_register' %}">Register</a></li>
               {% if not '/accounts/login' in request.get_full_path %}

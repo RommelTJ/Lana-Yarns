@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.db import models
 
 import braintree
@@ -85,6 +86,12 @@ class Order(models.Model):
 
     def __unicode__(self):
         return str(self.cart.id)
+
+    class Meta:
+        ordering = ['-id']
+
+    def get_absolute_url(self):
+        return reverse('order_detail', kwargs={'pk': self.pk})
 
     def mark_paid(self, transaction_id=None):
         if transaction_id:

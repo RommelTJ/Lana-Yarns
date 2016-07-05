@@ -220,9 +220,23 @@ class CheckoutFinalView(CartOrderMixin, View):
             result = braintree.Transaction.sale({
                 'amount': str(order_price),
                 'payment_method_nonce': nonce,
+                'billing': {
+                    'street_address': order.billing_address.street,
+                    'locality': order.billing_address.city,
+                    'region': order.billing_address.state,
+                    'postal_code': order.billing_address.zipcode,
+                    'country_code_alpha2': 'US'    # default country
+                },
+                'shipping': {
+                    'street_address': order.shipping_address.street,
+                    'locality': order.shipping_address.city,
+                    'region': order.shipping_address.state,
+                    'postal_code': order.shipping_address.zipcode,
+                    'country_code_alpha2': 'US'    # default country
+                },
                 'options': {
                     'submit_for_settlement': True
-                           }
+                }
             })
             if result.is_success:
                 # Add result.transaction.id to order

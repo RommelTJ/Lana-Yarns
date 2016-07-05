@@ -1,7 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="col-sm-6 col-sm-offset-3 text-center">
+{% if object_list.count > 0 %}
+    <h1>Your Orders <small>({{ object_list.count }})</small></h1>
+    <table class="table">
+    <tr>
+        <th class="text-center">Order ID</th>
+        <th class="text-center">Item Count</th>
+        <th class="text-center">Price</th>
+        <th class="text-center">Status</th>
+    </tr>
     {% for object in object_list %}
-        <b><a href="{% url 'order_detail' pk=object.pk %}">Order {{ object.pk }}</a>: </b>{{ object.cart.cartitem_set.all }}
+        <tr>
+            <td><b><a href="{{ object.get_absolute_url }}">View Order #{{ object.pk }}</a></b></td>
+            <td>{{ object.cart.cartitem_set.count }}</td>
+            <td>{{ object.order_price }}</td>
+            <td>{{ object.status }} {% if object.status == 'paid' %}(ID: {{ object.transaction_id }}){% endif %}</td>
+        </tr>
     {% endfor %}
+    </table>
+{% else %}
+    <p class="lead">You haven't placed any orders currently.</p>
+{% endif %}
+</div>
 {% endblock %}
