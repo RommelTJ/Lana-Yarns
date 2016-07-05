@@ -5,12 +5,13 @@ from django.http import Http404
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.utils import timezone
+from django_filters import FilterSet, CharFilter, NumberFilter
 import random
 import re
 
 from .models import Product, Variation, Category
-from .forms import VariationInventoryFormSet
-from .mixins import StaffRequiredMixin
+from .forms import VariationInventoryFormSet, ProductFilterForm
+from .mixins import StaffRequiredMixin, FilterMixin
 
 # Create your views here.
 
@@ -33,13 +34,33 @@ class ProductDetailView(DetailView):
         return context
 
 
-class ProductListView(ListView):
+class ProductFilter(FilterSet):
+    title = CharFilter(name='title', lookup_type='icontains')
+    category = CharFilter(name='categories__title', lookup_type='icontains', distinct=True)
+    category_id = CharFilter(name='categories__id', lookup_type='iexact', distinct=True)
+    min_price = NumberFilter(name='variation__price', lookup_type='gte', distinct=True)
+    max_price = NumberFilter(name='variation__price', lookup_type='lte', distinct=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            'title',
+            'description',
+            'category',
+            'min_price',
+            'max_price',
+        ]
+
+
+class ProductListView(FilterMixin, ListView):
     model = Product
+    filter_class = ProductFilter
 
     def get_context_data(self, *args, **kwargs):
         context = super(ProductListView, self).get_context_data(*args, **kwargs)
         context['now'] = timezone.now()
         context['query'] = self.request.GET.get('q')
+        context['filter_form'] = ProductFilterForm(data=self.request.GET or None)
         return context
 
     def get_queryset(self, *args, **kwargs):
