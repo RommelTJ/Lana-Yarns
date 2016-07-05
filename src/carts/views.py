@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.urlresolvers import reverse
@@ -7,12 +8,19 @@ from django.views.generic.detail import SingleObjectMixin, DetailView
 from django.views.generic.edit import FormMixin
 from django.shortcuts import render, get_object_or_404, redirect
 
+import braintree
 from orders.forms import GuestCheckoutForm
 from orders.mixins import CartOrderMixin
 from orders.models import UserCheckout, UserAddress
 from products.models import Variation
 from .models import Cart, CartItem
 
+# Braintree settings
+if settings.DEBUG:
+    braintree.Configuration.configure(braintree.Environment.Sandbox,
+                                      merchant_id=settings.BRAINTREE_MERCHANT_ID,
+                                      public_key=settings.BRAINTREE_PUBLIC,
+                                      private_key=settings.BRAINTREE_PRIVATE)
 # Create your views here.
 
 
@@ -201,15 +209,30 @@ class CheckoutView(DetailView, FormMixin, CartOrderMixin):
 class CheckoutFinalView(CartOrderMixin, View):
 
     def post(self, request, *args, **kwargs):
+        # Get the order
         order = self.get_order()
+        order_price = order.order_price
         if order.cart.cartitem_set.count == 0:
             return reverse('cart')
         # Validate payment
-        if request.POST.get('payment_token') == 'ABC':
-            order.mark_completed()
-            del request.session['cart_id']
-            del request.session['order_id']
-        messages.success(request, 'Your order has been completed. Thank you for your order.')
+        nonce = request.POST.get('payment_method_nonce')
+        if nonce:
+            result = braintree.Transaction.sale({
+                'amount': str(order_price),
+                'payment_method_nonce': nonce,
+                'options': {
+                    'submit_for_settlement': True
+                           }
+            })
+            if result.is_success:
+                # Add result.transaction.id to order
+                order.mark_paid(result.transaction.id)
+                del request.session['cart_id']
+                del request.session['order_id']
+                messages.success(request, 'Your order has been completed. Thank you for your order.')
+            else:
+                messages.error(request, result.message)
+                return redirect('checkout')
         return redirect('order_detail', pk=order.pk)
 
     def get(self, request, *args, **kwargs):

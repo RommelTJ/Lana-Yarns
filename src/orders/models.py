@@ -21,6 +21,9 @@ ADDRESS_TYPE = (
 
 ORDER_STATUS_CHOICES = (
     ('created', 'Created'),
+    ('paid', 'Paid'),
+    ('shipped', 'Shipped'),
+    ('refunded', 'Refunded'),
     ('completed', 'Completed'),
     )
 
@@ -78,11 +81,16 @@ class Order(models.Model):
     billing_address = models.ForeignKey(UserAddress, related_name='billing_address', null=True)
     shipping_total_price = models.DecimalField(decimal_places=2, max_digits=50, default=0.00)
     order_price = models.DecimalField(decimal_places=2, max_digits=50, default=0.00)
+    transaction_id = models.CharField(max_length=20, null=True, blank=True)
 
     def __unicode__(self):
         return str(self.cart.id)
 
-    def mark_completed(self):
-        self.status = 'completed'
-        self.save()
-
+    def mark_paid(self, transaction_id=None):
+        if transaction_id:
+            self.transaction_id = transaction_id
+            self.status = 'paid'
+            self.save()
+        elif self.transaction_id:
+            self.status = 'paid'
+            self.save()
