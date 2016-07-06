@@ -81,7 +81,7 @@
             </tr>
         {% for cartitem in object.cartitem_set.all %}
             <tr id="item-{{ cartitem.item.id }}">
-                <td>{{ cartitem.item.get_title }}</td>
+                <td><a href="{{ cartitem.item.get_absolute_url }}">{{ cartitem.item.get_title }}</a></td>
                 <td>
                     <form method="GET" action="">
                         <input type="hidden" name="item_id" value="{{ cartitem.item.id }}" />

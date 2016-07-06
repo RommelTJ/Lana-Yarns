@@ -31,6 +31,9 @@ class ProductDetailView(DetailView):
         context = super(ProductDetailView, self).get_context_data(*args, **kwargs)
         instance = self.get_object()
         context['related'] = sorted(Product.objects.get_related(instance)[:6], key=lambda x: random.random())
+        variation_selected = self.request.GET.get("variation_selected")
+        if variation_selected:
+            context['variation_selected'] = int(variation_selected)
         return context
 
 

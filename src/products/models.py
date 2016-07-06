@@ -86,6 +86,12 @@ class Variation(models.Model):
         else:
             return '%s - %s' % (self.product.title, self.title)
 
+    def get_absolute_url(self):
+        if self.product.variation_set.count() > 1:
+            return '%s?variation_selected=%s' % (self.product.get_absolute_url(), self.id)
+        else:
+            return self.product.get_absolute_url()
+
 
 # Product Image
 

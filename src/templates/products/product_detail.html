@@ -65,7 +65,11 @@
                 {% if object.variation_set.count > 0 %}
                     <select name="item_id" class="form-control variation_select">
                         {% for var_obj in object.variation_set.all %}
-                            <option data-price="{{ var_obj.price }}" data-sale-price="{{ var_obj.sale_price }}" value="{{ var_obj.id }}">{{ var_obj.title }}</option>
+                            {% if variation_selected == var_obj.id %}
+                                <option data-price="{{ var_obj.price }}" data-sale-price="{{ var_obj.sale_price }}" value="{{ var_obj.id }}" selected>{{ var_obj.title }}</option>
+                            {% else %}
+                                <option data-price="{{ var_obj.price }}" data-sale-price="{{ var_obj.sale_price }}" value="{{ var_obj.id }}">{{ var_obj.title }}</option>
+                            {% endif %}
                         {% endfor %}
                     </select>
                 {% endif %}

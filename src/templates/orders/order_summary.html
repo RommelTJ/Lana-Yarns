@@ -8,7 +8,7 @@
                 <td>
                     <span class="lead">{{ order.cart.cartitem_set.count }} Cart item(s):</span> <br/>
                     {% for cartitem in order.cart.cartitem_set.all %}
-                        &emsp;&emsp;<b>{{ cartitem.item.get_title }}</b><br/>
+                        &emsp;&emsp;<a href="{{ cartitem.item.get_absolute_url }}"><b>{{ cartitem.item.get_title }}</b></a><br/>
                     {% endfor %}
                 </td>
             </tr>
@@ -39,7 +39,7 @@
         <p>&emsp;&emsp;{{ order.billing_address.get_address }}</p>
         {% if static_page %}
             <p>
-                <a href="#"><b>Print your record for future use.</b></a>
+                <b>Print your record for future use. (Press "Ctrl + P")</b>
             </p>
         {% else %}
             <p>
