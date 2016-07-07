@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_filters',
     'registration',
+    'rest_framework',
     #My apps
     'carts',
     'newsletter',
