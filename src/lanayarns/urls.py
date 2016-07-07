@@ -21,6 +21,10 @@ from django.contrib import admin
 from newsletter import views as newsletter_views
 from . import views as main_views
 
+from products.views import (
+    CategoryAPIListView,
+)
+
 urlpatterns = [
     url(r'^$', newsletter_views.home, name='home'),
     url(r'^contact/$', newsletter_views.contact, name='contact'),
@@ -33,6 +37,10 @@ urlpatterns = [
 
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('registration.backends.default.urls')),
+]
+
+urlpatterns += [
+    url(r'^api/categories/$', CategoryAPIListView.as_view(), name='categories_api'),
 ]
 
 if settings.DEBUG:
