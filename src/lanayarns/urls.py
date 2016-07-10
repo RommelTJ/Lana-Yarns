@@ -22,6 +22,8 @@ from newsletter import views as newsletter_views
 from . import views as main_views
 
 from products.views import (
+    ProductListAPIView,
+    ProductRetrieveAPIView,
     CategoryListAPIView,
     CategoryRetrieveAPIView,
 )
@@ -41,6 +43,8 @@ urlpatterns = [
 ]
 
 urlpatterns += [
+    url(r'^api/products/$', ProductListAPIView.as_view(), name='products_api'),
+    url(r'^api/products/(?P<pk>\d+)/$', ProductRetrieveAPIView.as_view(), name='product_detail_api'),
     url(r'^api/categories/$', CategoryListAPIView.as_view(), name='categories_api'),
     url(r'^api/categories/(?P<pk>\d+)/$', CategoryRetrieveAPIView.as_view(), name='category_detail_api'),
 ]

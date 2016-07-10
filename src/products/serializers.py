@@ -8,18 +8,43 @@ class VariationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Variation
         fields = [
+            'id',
             'title',
             'price',
         ]
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductDetailSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     variation_set = VariationSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = [
+            'id',
+            'title',
+            'description',
+            'price',
+            'image',
+            'variation_set',
+        ]
+
+    def get_image(self, obj):
+        if obj.productimage_set.exists():
+            return obj.productimage_set.first().image.url
+        else:
+            return None
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='product_detail_api')
+    image = serializers.SerializerMethodField()
+    variation_set = VariationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            'url',
             'id',
             'title',
             'image',
