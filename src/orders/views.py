@@ -6,12 +6,33 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, FormView
 from django.views.generic.list import ListView
 
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .forms import AddressForm, UserAddressForm
-from .mixins import LoginRequiredMixin, CartOrderMixin, UserCheckoutMixin
+from .mixins import UserCheckoutAPIMixin, LoginRequiredMixin, CartOrderMixin, UserCheckoutMixin
 from .models import UserCheckout, UserAddress, Order
 
 # Create your views here.
 
+
+# API CBVs
+
+class UserCheckoutAPI(UserCheckoutAPIMixin, APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, format=None):
+        data = self.get_checkout_data(user=request.user)
+        return Response(data)
+
+    def post(self, request, format=None):
+        email = request.data.get('email')
+        data = self.get_checkout_data(user=request.user, email=email)
+        return Response(data)
+
+
+# CBVs
 
 class AddressSelectFormView(FormView, CartOrderMixin, UserCheckoutMixin):
     form_class = AddressForm

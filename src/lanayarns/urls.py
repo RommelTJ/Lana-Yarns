@@ -21,6 +21,10 @@ from django.contrib import admin
 from newsletter import views as newsletter_views
 from . import views as main_views
 
+from orders.views import (
+    UserCheckoutAPI,
+)
+
 from products.views import (
     APIHomeView,
     ProductListAPIView,
@@ -45,6 +49,7 @@ urlpatterns = [
 
 urlpatterns += [
     url(r'^api/$', APIHomeView.as_view(), name='home_api'),
+    url(r'^api/user/checkout/$', UserCheckoutAPI.as_view(), name='user_checkout_api'),
     url(r'^api/products/$', ProductListAPIView.as_view(), name='products_api'),
     url(r'^api/products/(?P<pk>\d+)/$', ProductRetrieveAPIView.as_view(), name='product_detail_api'),
     url(r'^api/categories/$', CategoryListAPIView.as_view(), name='categories_api'),
