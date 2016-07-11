@@ -174,3 +174,10 @@ except:
     BRAINTREE_PRIVATE = config.get('braintree', 'BRAINTREE_PRIVATE')
     BRAINTREE_MERCHANT_ID = config.get('braintree', 'BRAINTREE_MERCHANT_ID')
     BRAINTREE_ENVIRONMENT = config.get('braintree', 'BRAINTREE_ENVIRONMENT')
+
+# REST Framework Settings
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+                                  )
+}

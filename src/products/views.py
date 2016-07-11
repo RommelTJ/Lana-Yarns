@@ -10,6 +10,7 @@ import random
 import re
 
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 from .models import Product, Variation, Category
 from .forms import VariationInventoryFormSet, ProductFilterForm
 from .mixins import StaffRequiredMixin, FilterMixin
@@ -26,6 +27,7 @@ class ProductListAPIView(generics.ListAPIView):
 
 
 class ProductRetrieveAPIView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductDetailSerializer
 
