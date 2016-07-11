@@ -5,14 +5,14 @@ from django.http import Http404
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.utils import timezone
-from django_filters import FilterSet, CharFilter, NumberFilter
 import random
 import re
 
-from rest_framework import generics
+from rest_framework import filters, generics
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import Product, Variation, Category
+from .filters import ProductFilter
 from .forms import VariationInventoryFormSet, ProductFilterForm
 from .mixins import StaffRequiredMixin, FilterMixin
 from .pagination import ProductPagination, CategoryPagination
@@ -27,6 +27,14 @@ class ProductListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    filter_backends = [
+        filters.SearchFilter,
+        filters.OrderingFilter,
+        filters.DjangoFilterBackend,
+    ]
+    search_fields = ['title', 'description']
+    ordering_fields = ['title', 'id']
+    filter_class = ProductFilter
 
 
 class ProductRetrieveAPIView(generics.RetrieveAPIView):
@@ -68,24 +76,6 @@ class ProductDetailView(DetailView):
         if variation_selected:
             context['variation_selected'] = int(variation_selected)
         return context
-
-
-class ProductFilter(FilterSet):
-    title = CharFilter(name='title', lookup_type='icontains')
-    category = CharFilter(name='categories__title', lookup_type='icontains', distinct=True)
-    category_id = CharFilter(name='categories__id', lookup_type='iexact', distinct=True)
-    min_price = NumberFilter(name='variation__price', lookup_type='gte', distinct=True)
-    max_price = NumberFilter(name='variation__price', lookup_type='lte', distinct=True)
-
-    class Meta:
-        model = Product
-        fields = [
-            'title',
-            'description',
-            'category',
-            'min_price',
-            'max_price',
-        ]
 
 
 class ProductListView(FilterMixin, ListView):
