@@ -18,6 +18,7 @@ from orders.mixins import CartOrderMixin
 from orders.models import UserCheckout, UserAddress
 from products.models import Variation
 from .models import Cart, CartItem
+from .serializers import CartItemSerializer
 
 # Braintree settings
 if settings.DEBUG:
@@ -107,12 +108,14 @@ class CartAPIView(APIView):
         if cart.user is None:
             self.update_cart(cart)
         if cart is not None:
+            items = CartItemSerializer(cart.cartitem_set.all(), many=True)
             data = {
                 'cart': cart.id,
                 'sub_total': cart.subtotal,
                 'tax_total': cart.tax_total,
                 'total': cart.total,
-                'items': cart.cartitem_set.count(),
+                'count': cart.cartitem_set.count(),
+                'items': items.data,
                 'token': token,
             }
         else:
