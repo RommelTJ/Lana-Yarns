@@ -101,3 +101,9 @@ class Order(models.Model):
         elif self.transaction_id:
             self.status = 'paid'
             self.save()
+
+    @property
+    def is_paid(self):
+        if self.status == 'paid':
+            return True
+        return False

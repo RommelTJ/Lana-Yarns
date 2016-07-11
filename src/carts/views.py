@@ -14,7 +14,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from orders.forms import GuestCheckoutForm
 from orders.mixins import CartOrderMixin
-from orders.models import UserCheckout, UserAddress
+from orders.models import UserCheckout, Order
+from orders.serializers import OrderSerializer
 from products.models import Variation
 from .mixins import CartTokenMixin
 from .models import Cart, CartItem
@@ -105,10 +106,43 @@ class CartAPIView(CartTokenMixin, APIView):
 class CheckoutAPIView(CartTokenMixin, APIView):
 
     def get(self, request, format=None):
+        # ensure user checkout is required
+        user_checkout_id = request.GET.get('checkout_id')
+        try:
+            user_checkout = UserCheckout.objects.get(id=user_checkout_id)
+        except:
+            user_checkout = None
+        if user_checkout is None:
+            data = {
+                'message': 'Your user account is not authenticated.'
+            }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
         data, cart_obj = self.get_ctxdata_with_cart('cart_token')
         get_data_succeed = data.get('success')
         if get_data_succeed:
-            return Response(data)
+            if cart_obj.cartitem_set.count() == 0:
+                data = {
+                    'message': 'Your cart is empty.'
+                }
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                order, created = Order.objects.get_or_create(cart=cart_obj)
+                if created or (not order.user_checkout):
+                    order.user_checkout = user_checkout
+                    order.save()
+                if order.user_checkout != user_checkout:
+                    data = {
+                        'message': 'There was some errors with user authentication. Please check your user account.',
+                    }
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                if order.is_paid:
+                    data = {
+                        'message': 'This order has been paid(complete).',
+                    }
+                    return Response(data)
+                data = OrderSerializer(order).data
+                return Response(data)
         else:
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
