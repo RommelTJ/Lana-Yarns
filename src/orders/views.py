@@ -6,6 +6,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, FormView
 from django.views.generic.list import ListView
 
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +14,7 @@ from rest_framework.views import APIView
 from .forms import AddressForm, UserAddressForm
 from .mixins import UserCheckoutAPIMixin, LoginRequiredMixin, CartOrderMixin, UserCheckoutMixin
 from .models import UserCheckout, UserAddress, Order
+from .serializers import UserAddressSerializer
 
 # Create your views here.
 
@@ -30,6 +32,26 @@ class UserCheckoutAPI(UserCheckoutAPIMixin, APIView):
         email = request.data.get('email')
         data = self.get_checkout_data(user=request.user, email=email)
         return Response(data)
+
+
+class UserAddressCreateAPIView(CreateAPIView):
+    model = UserAddress
+    serializer_class = UserAddressSerializer
+
+
+class UserAddressListAPIView(ListAPIView):
+    model = UserAddress
+    queryset = UserAddress.objects.all()
+    serializer_class = UserAddressSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        user_checkout_id = self.request.GET.get('user_checkout_id')
+        if self.request.user.is_authenticated():
+            return UserAddress.objects.filter(user_checkout__user=self.request.user)
+        elif user_checkout_id:
+            return UserAddress.objects.filter(user_checkout__id=int(user_checkout_id))
+        else:
+            return UserAddress.objects.none()
 
 
 # CBVs
