@@ -9,13 +9,14 @@ from django.views.generic.edit import FormMixin
 from django.shortcuts import render, get_object_or_404, redirect
 
 import braintree
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from orders.forms import GuestCheckoutForm
 from orders.mixins import CartOrderMixin
 from orders.models import UserCheckout, UserAddress
 from products.models import Variation
-from .mixins import TokenMixin
+from .mixins import CartTokenMixin
 from .models import Cart, CartItem
 from .serializers import CartItemSerializer
 
@@ -30,7 +31,7 @@ if settings.DEBUG:
 
 # API CBVs
 
-class CartAPIView(TokenMixin, APIView):
+class CartAPIView(CartTokenMixin, APIView):
 
     def update_cart(self, cart, *args, **kwargs):
         # cart, token = self.get_cart_token()
@@ -76,32 +77,12 @@ class CartAPIView(TokenMixin, APIView):
                     elif item_updated:
                         flash_message = 'Quantity has been update successfully.'
 
-    def get_cart_token(self):
-        token_data = self.request.GET.get('token')
-        if token_data:
-            try:
-                token_dict = self.parse_token(token_data)
-                cart_id = token_dict.get('cart_id')
-                cart = Cart.objects.get(id=cart_id)
-            except:
-                cart = None
-        else:
-            cart = Cart()
-            if self.request.user.is_authenticated():
-                cart.user = self.request.user
-            cart.save()
-            data = {
-                'cart_id': cart.id,
-            }
-            token_data = self.create_token(data)
-        return cart, token_data
-
     def get(self, request, format=None):
-        cart, token = self.get_cart_token()
-        # only allow update cart which belongs to no one
-        if cart.user is None:
-            self.update_cart(cart)
+        token, cart = self.get_token_with_cart('token')
         if cart is not None:
+            # only allow update cart which belongs to no one
+            if cart.user is None:
+                self.update_cart(cart)
             items = CartItemSerializer(cart.cartitem_set.all(), many=True)
             data = {
                 'cart': cart.id,
@@ -112,11 +93,24 @@ class CartAPIView(TokenMixin, APIView):
                 'items': items.data,
                 'token': token,
             }
+            return Response(data)
         else:
             data = {
+                'success': False,
                 'detail': 'invalid token. object not found.',
             }
-        return Response(data)
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CheckoutAPIView(CartTokenMixin, APIView):
+
+    def get(self, request, format=None):
+        data, cart_obj = self.get_ctxdata_with_cart('cart_token')
+        get_data_succeed = data.get('success')
+        if get_data_succeed:
+            return Response(data)
+        else:
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 # CBVs
