@@ -22,6 +22,10 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from newsletter import views as newsletter_views
 from . import views as main_views
 
+from carts.views import (
+    CartAPIView,
+)
+
 from orders.views import (
     UserCheckoutAPI,
 )
@@ -50,6 +54,7 @@ urlpatterns = [
 
 urlpatterns += [
     url(r'^api/$', APIHomeView.as_view(), name='home_api'),
+    url(r'^api/cart/$', CartAPIView.as_view(), name='cart_api'),
     url(r'^api/auth/token/$', obtain_jwt_token),
     url(r'^api/auth/token/refresh/$', refresh_jwt_token),
     url(r'^api/user/checkout/$', UserCheckoutAPI.as_view(), name='user_checkout_api'),

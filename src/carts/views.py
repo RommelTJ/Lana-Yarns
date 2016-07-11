@@ -8,7 +8,11 @@ from django.views.generic.detail import SingleObjectMixin, DetailView
 from django.views.generic.edit import FormMixin
 from django.shortcuts import render, get_object_or_404, redirect
 
+import ast
+import base64
 import braintree
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from orders.forms import GuestCheckoutForm
 from orders.mixins import CartOrderMixin
 from orders.models import UserCheckout, UserAddress
@@ -23,6 +27,55 @@ if settings.DEBUG:
                                       private_key=settings.BRAINTREE_PRIVATE)
 # Create your views here.
 
+
+# API CBVs
+
+class CartAPIView(APIView):
+
+    def create_token(self, cart_id):
+        data = {
+            'cart_id': cart_id,
+        }
+        token = base64.b64encode(str(data))
+        return token
+
+    def get_cart_token(self):
+        token_data = self.request.GET.get('token')
+        if token_data:
+            try:
+                token_decoded = base64.b64decode(token_data)
+                token_dict = ast.literal_eval(token_decoded)
+                cart_id = token_dict.get('cart_id')
+                cart = Cart.objects.get(id=cart_id)
+            except:
+                cart = None
+        else:
+            cart = Cart()
+            if self.request.user.is_authenticated():
+                cart.user = self.request.user
+            cart.save()
+            token_data = self.create_token(cart.id)
+        return cart, token_data
+
+    def get(self, request, format=None):
+        cart, token = self.get_cart_token()
+        if cart is not None:
+            data = {
+                'cart': cart.id,
+                'sub_total': cart.subtotal,
+                'tax_total': cart.tax_total,
+                'total': cart.total,
+                'items': cart.cartitem_set.count(),
+                'token': token,
+            }
+        else:
+            data = {
+                'detail': 'invalid token. object not found.',
+            }
+        return Response(data)
+
+
+# CBVs
 
 class ItemCountView(View):
 
