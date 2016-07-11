@@ -8,8 +8,6 @@ from django.views.generic.detail import SingleObjectMixin, DetailView
 from django.views.generic.edit import FormMixin
 from django.shortcuts import render, get_object_or_404, redirect
 
-import ast
-import base64
 import braintree
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +15,7 @@ from orders.forms import GuestCheckoutForm
 from orders.mixins import CartOrderMixin
 from orders.models import UserCheckout, UserAddress
 from products.models import Variation
+from .mixins import TokenMixin
 from .models import Cart, CartItem
 from .serializers import CartItemSerializer
 
@@ -31,7 +30,7 @@ if settings.DEBUG:
 
 # API CBVs
 
-class CartAPIView(APIView):
+class CartAPIView(TokenMixin, APIView):
 
     def update_cart(self, cart, *args, **kwargs):
         # cart, token = self.get_cart_token()
@@ -77,19 +76,11 @@ class CartAPIView(APIView):
                     elif item_updated:
                         flash_message = 'Quantity has been update successfully.'
 
-    def create_token(self, cart_id):
-        data = {
-            'cart_id': cart_id,
-        }
-        token = base64.b64encode(str(data))
-        return token
-
     def get_cart_token(self):
         token_data = self.request.GET.get('token')
         if token_data:
             try:
-                token_decoded = base64.b64decode(token_data)
-                token_dict = ast.literal_eval(token_decoded)
+                token_dict = self.parse_token(token_data)
                 cart_id = token_dict.get('cart_id')
                 cart = Cart.objects.get(id=cart_id)
             except:
@@ -99,7 +90,10 @@ class CartAPIView(APIView):
             if self.request.user.is_authenticated():
                 cart.user = self.request.user
             cart.save()
-            token_data = self.create_token(cart.id)
+            data = {
+                'cart_id': cart.id,
+            }
+            token_data = self.create_token(data)
         return cart, token_data
 
     def get(self, request, format=None):
