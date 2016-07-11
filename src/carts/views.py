@@ -32,6 +32,50 @@ if settings.DEBUG:
 
 class CartAPIView(APIView):
 
+    def update_cart(self, cart, *args, **kwargs):
+        # cart, token = self.get_cart_token()
+        if cart is not None:
+            item_id = self.request.GET.get('item_id')
+            delete_item = self.request.GET.get('delete', False)
+            qty = self.request.GET.get('qty')
+            flash_message = ''
+            # Check order:
+            # 1. item_id -- determine the instance
+            # 2. delete_item -- determine whether to delete the instance
+            # 3. qty -- determine how many instance will be added to the cart
+            #           the 'qty' option would not work when 'delete_item' is set to something
+            #           By default, 'qty' is set to 1.
+            if item_id:
+                item_exists = Variation.objects.filter(id=item_id).exists()
+                if item_exists:
+                    item_instance = Variation.objects.get(id=item_id)
+                    cart_item, created = CartItem.objects.get_or_create(cart=cart, item=item_instance)
+                    item_updated = False # For Ajax
+                    if delete_item:
+                        cart_item.delete()
+                        cart.update_subtotal()  # Recalculate subtotal
+                    elif qty:
+                        if qty.isdigit() and int(qty) > 0:
+                            if cart_item.quantity != qty:
+                                cart_item.quantity = qty
+                                cart_item.save()
+                                item_updated = True # For Ajax
+                        else:
+                            # messages.error(self.request, "The input quantity is not valid. Add to cart operation fails.")
+                            if created:
+                                cart_item.delete()
+                    # Ensure the cart subtotal is recalculated
+                    if item_updated:
+                        cart.update_subtotal()
+                    # Check operation status
+                    item_added = cart_item and created
+                    if item_added:
+                        flash_message = 'Item successfully added.'
+                    elif delete_item:
+                        flash_message = 'Item removed successfully.'
+                    elif item_updated:
+                        flash_message = 'Quantity has been update successfully.'
+
     def create_token(self, cart_id):
         data = {
             'cart_id': cart_id,
@@ -59,6 +103,9 @@ class CartAPIView(APIView):
 
     def get(self, request, format=None):
         cart, token = self.get_cart_token()
+        # only allow update cart which belongs to no one
+        if cart.user is None:
+            self.update_cart(cart)
         if cart is not None:
             data = {
                 'cart': cart.id,

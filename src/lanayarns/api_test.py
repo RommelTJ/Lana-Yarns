@@ -4,6 +4,7 @@ import json
 base_url = 'http://localhost:8000/api/'
 login_url = base_url + 'auth/token/'
 refresh_url = login_url + 'refresh/'
+cart_url = base_url + 'cart/'
 products_url = base_url + 'products/'
 
 # requests.post(login_url, data=None, headers=None, params=None)
@@ -37,3 +38,7 @@ data = {
 refresh_r = requests.post(refresh_url, data=data)
 print(refresh_r.json())
 token = refresh_r.json()['token']
+
+# Cart URL test
+cart_r = requests.get(cart_url)
+print(cart_r.json())
