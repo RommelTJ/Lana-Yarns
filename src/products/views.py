@@ -11,6 +11,9 @@ import re
 from rest_framework import filters, generics
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.reverse import reverse as api_reverse
+from rest_framework.views import APIView
 from .models import Product, Variation, Category
 from .filters import ProductFilter
 from .forms import VariationInventoryFormSet, ProductFilterForm
@@ -22,6 +25,22 @@ from .serializers import CategorySerializer, ProductDetailSerializer, ProductSer
 
 
 # API CBVs
+
+class APIHomeView(APIView):
+
+    def get(self, request, format=None):
+        data = {
+            'products': {
+                'count': Product.objects.count(),
+                'url': api_reverse('products_api', request=request),
+            },
+            'categories': {
+                'count': Category.objects.count(),
+                'url': api_reverse('categories_api', request=request),
+            },
+        }
+        return Response(data)
+
 
 class ProductListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
