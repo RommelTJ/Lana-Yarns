@@ -17,6 +17,7 @@ from django.conf import settings
 from django.conf.urls import url, include
 from django.conf.urls.static import static
 from django.contrib import admin
+from rest_framework_jwt.views import obtain_jwt_token
 
 from newsletter import views as newsletter_views
 from . import views as main_views
@@ -49,6 +50,7 @@ urlpatterns = [
 
 urlpatterns += [
     url(r'^api/$', APIHomeView.as_view(), name='home_api'),
+    url(r'^api/auth/token/$', obtain_jwt_token),
     url(r'^api/user/checkout/$', UserCheckoutAPI.as_view(), name='user_checkout_api'),
     url(r'^api/products/$', ProductListAPIView.as_view(), name='products_api'),
     url(r'^api/products/(?P<pk>\d+)/$', ProductRetrieveAPIView.as_view(), name='product_detail_api'),

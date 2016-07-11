@@ -4,6 +4,8 @@ django-crispy-forms==1.6.0
 django-filter==0.13.0
 django-registration-redux==1.4
 djangorestframework==3.3.3
+djangorestframework-jwt==1.8.0
 Markdown==2.6.6
 Pillow==3.1.1
+PyJWT==1.4.0
 wheel==0.24.0
