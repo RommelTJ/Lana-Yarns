@@ -10,6 +10,7 @@ import random
 import re
 
 from rest_framework import generics
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import Product, Variation, Category
 from .forms import VariationInventoryFormSet, ProductFilterForm
@@ -22,11 +23,13 @@ from .serializers import CategorySerializer, ProductDetailSerializer, ProductSer
 # API CBVs
 
 class ProductListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 
 class ProductRetrieveAPIView(generics.RetrieveAPIView):
+    authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductDetailSerializer
