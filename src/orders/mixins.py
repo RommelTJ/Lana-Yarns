@@ -3,15 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.utils.decorators import method_decorator
 
+from carts.mixins import TokenMixin
 from carts.models import Cart
-from .models import Order, UserCheckout
+from .models import UserCheckout, Order
 
 User = get_user_model()
 
 # API Mixins
 
-class UserCheckoutAPIMixin(object):
-
+class UserCheckoutAPIMixin(TokenMixin):
     def user_failure(self, message=None):
         data = {
             'message': 'There was an error. Please try again.',
@@ -49,12 +49,17 @@ class UserCheckoutAPIMixin(object):
             data = self.user_failure()
 
         if user_checkout:
-            data['token'] = user_checkout.get_client_token()
+            data['success'] = True
             data['braintree_id'] = user_checkout.braintree_id
             data['user_checkout_id'] = user_checkout.id
-            data['success'] = True
+            # Create custom token
+            data['user_checkout_token'] = self.create_token(data)
+            # Do not show extra data for user checkout
+            del data['braintree_id']
+            del data['user_checkout_id']
+            # Auxiliary token
+            data['braintree_client_token'] = user_checkout.get_client_token()
         return data
-
 
 # Mixins
 
@@ -63,9 +68,7 @@ class LoginRequiredMixin(object):
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
-
 class CartOrderMixin(object):
-
     def get_order(self, *args, **kwargs):
         cart = self.get_cart()
         order_id = self.request.session.get('order_id')
@@ -86,7 +89,8 @@ class CartOrderMixin(object):
 
         cart = Cart.objects.get(id=cart_id)
         if self.request.user.is_authenticated(): # Login user
-            # if the cart is not belong to the current login user, start a new cart
+            # if the cart is not belong to the current login user,
+            # start a new cart
             if cart.user is not None and cart.user != self.request.user:
                 cart = Cart()
                 cart.save()
@@ -98,9 +102,7 @@ class CartOrderMixin(object):
                 pass # Required Login or remind user to start a new session
         return cart
 
-
 class UserCheckoutMixin(object):
-
     def get_user_checkout(self, *args, **kwargs):
         user_checkout_id = self.request.session.get('user_checkout_id')
         if self.request.user.is_authenticated():

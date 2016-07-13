@@ -9,12 +9,14 @@ from django.views.generic.edit import FormMixin
 from django.shortcuts import render, get_object_or_404, redirect
 
 import braintree
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from orders.forms import GuestCheckoutForm
 from orders.mixins import CartOrderMixin
-from orders.models import UserCheckout, Order
+from orders.models import UserAddress, UserCheckout, Order
 from orders.serializers import OrderSerializer
 from products.models import Variation
 from .mixins import CartTokenMixin
@@ -27,6 +29,8 @@ if settings.DEBUG:
                                       merchant_id=settings.BRAINTREE_MERCHANT_ID,
                                       public_key=settings.BRAINTREE_PUBLIC,
                                       private_key=settings.BRAINTREE_PRIVATE)
+
+
 # Create your views here.
 
 
@@ -102,12 +106,19 @@ class CartAPIView(CartTokenMixin, APIView):
             }
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-
 class CheckoutAPIView(CartTokenMixin, APIView):
-
+    """
+    Currently, this API only supports user checkout token method, instead of user authenticate method
+    """
     def get(self, request, format=None):
         # ensure user checkout is required
-        user_checkout_id = request.GET.get('checkout_id')
+        user_checkout_token = self.request.GET.get('user_checkout_token')
+        try:
+            user_checkout_data = self.parse_token(user_checkout_token)
+            user_checkout_id = user_checkout_data.get('user_checkout_id')
+        except:
+            user_checkout_id = None
+
         try:
             user_checkout = UserCheckout.objects.get(id=user_checkout_id)
         except:
@@ -141,11 +152,46 @@ class CheckoutAPIView(CartTokenMixin, APIView):
                         'message': 'This order has been paid(complete).',
                     }
                     return Response(data)
+
+                # billing and shipping address
+                billing_address_id = self.request.GET.get('billing_address_id')
+                shipping_address_id = self.request.GET.get('shipping_address_id')
+                try:
+                    billing_address = UserAddress.objects.get(user_checkout=user_checkout, type='billing', id=int(billing_address_id))
+                except:
+                    billing_address = None
+                try:
+                    shipping_address = UserAddress.objects.get(user_checkout=user_checkout, type='shipping', id=int(shipping_address_id))
+                except:
+                    shipping_address = None
+
+                if billing_address:
+                    order.billing_address = billing_address
+                    order.save()
+                if shipping_address:
+                    order.shipping_address = shipping_address
+                    order.save()
+
+                if (order.billing_address is None) and (order.shipping_address is None):
+                    data = {
+                        'message': 'The billing address and shipping address are missing. Please add valid addresses to make the order.',
+                    }
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                elif order.billing_address is None:
+                    data = {
+                        'message': 'The billing address is missing. Please add valid address to make the order.',
+                    }
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                elif order.shipping_address is None:
+                    data = {
+                        'message': 'The shipping address is missing. Please add valid address to make the order.',
+                    }
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
                 data = OrderSerializer(order).data
                 return Response(data)
         else:
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
 
 # CBVs
 
@@ -164,7 +210,6 @@ class ItemCountView(View):
         else:
             raise Http404
 
-
 class CartView(SingleObjectMixin, View):
     model = Cart
     template_name = 'carts/cart_view.html'
@@ -180,7 +225,8 @@ class CartView(SingleObjectMixin, View):
 
         cart = Cart.objects.get(id=cart_id)
         if self.request.user.is_authenticated(): # Login user
-            # if the cart is not belong to the current login user, start a new cart
+            # if the cart is not belong to the current login user,
+            # start a new cart
             if cart.user is not None and cart.user != self.request.user:
                 cart = Cart()
                 cart.save()
@@ -197,7 +243,7 @@ class CartView(SingleObjectMixin, View):
         item_id = request.GET.get('item_id')
         delete_item = request.GET.get('delete', False)
         qty = request.GET.get('qty')
-        flash_message = ""
+        flash_message = ''
         # Check order:
         # 1. item_id -- determine the instance
         # 2. delete_item -- determine whether to delete the instance
@@ -224,15 +270,16 @@ class CartView(SingleObjectMixin, View):
             # Check operation status
             item_added = cart_item and created
             if item_added:
-                flash_message = "Item successfully added."
+                flash_message = 'Item successfully added.'
             elif delete_item:
-                flash_message = "Item removed successfully."
+                flash_message = 'Item removed successfully.'
             elif item_updated:
-                flash_message = "Quantity has been updated successfully."
+                flash_message = 'Quantity has been update successfully.'
         if request.is_ajax():
             # Refresh data for Ajax request
             cart.update_subtotal()
             cartitem_count = cart.cartitem_set.count()
+
             jsondata = {
                 'flash_message': flash_message,
                 # For cart detail view only
@@ -248,14 +295,13 @@ class CartView(SingleObjectMixin, View):
             'object': cart,
         }
         template = self.template_name
-        # if update quantity from self page, reload page to recalculate the subtotal
+        # if update quantity from self page, Reload page to recalculate the subtotal
         update_item = request.GET.get('update')
         if update_item:
             return redirect('cart')
         return render(request, template, context)
 
-
-class CheckoutView(DetailView, FormMixin, CartOrderMixin):
+class CheckoutView(FormMixin, CartOrderMixin, DetailView):
     model = Cart
     template_name = 'carts/checkout_view.html'
     form_class = GuestCheckoutForm
@@ -327,12 +373,9 @@ class CheckoutView(DetailView, FormMixin, CartOrderMixin):
         # 5. Save the order
         new_order.user_checkout = user_checkout
         new_order.save()
-
         return get_data
 
-
 class CheckoutFinalView(CartOrderMixin, View):
-
     def post(self, request, *args, **kwargs):
         # Get the order
         order = self.get_order()
@@ -376,4 +419,3 @@ class CheckoutFinalView(CartOrderMixin, View):
 
     def get(self, request, *args, **kwargs):
         return redirect('orders')
-

@@ -11,19 +11,18 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+# Create your views here.
+
+from carts.mixins import TokenMixin
 from .forms import AddressForm, UserAddressForm
 from .mixins import UserCheckoutAPIMixin, LoginRequiredMixin, CartOrderMixin, UserCheckoutMixin
 from .models import UserCheckout, UserAddress, Order
 from .serializers import UserAddressSerializer
 
-# Create your views here.
-
-
 # API CBVs
 
 class UserCheckoutAPI(UserCheckoutAPIMixin, APIView):
     permission_classes = [AllowAny]
-
     def get(self, request, format=None):
         data = self.get_checkout_data(user=request.user)
         return Response(data)
@@ -33,19 +32,26 @@ class UserCheckoutAPI(UserCheckoutAPIMixin, APIView):
         data = self.get_checkout_data(user=request.user, email=email)
         return Response(data)
 
-
 class UserAddressCreateAPIView(CreateAPIView):
     model = UserAddress
     serializer_class = UserAddressSerializer
 
 
-class UserAddressListAPIView(ListAPIView):
+class UserAddressListAPIView(TokenMixin, ListAPIView):
+    """
+    N.B. User authenticate method is prior to the user checkout ID method
+    """
     model = UserAddress
     queryset = UserAddress.objects.all()
     serializer_class = UserAddressSerializer
 
     def get_queryset(self, *args, **kwargs):
-        user_checkout_id = self.request.GET.get('user_checkout_id')
+        user_checkout_token = self.request.GET.get('user_checkout_token')
+        try:
+            user_checkout_data = self.parse_token(user_checkout_token)
+            user_checkout_id = user_checkout_data.get('user_checkout_id')
+        except:
+            user_checkout_id = None
         if self.request.user.is_authenticated():
             return UserAddress.objects.filter(user_checkout__user=self.request.user)
         elif user_checkout_id:
@@ -53,10 +59,9 @@ class UserAddressListAPIView(ListAPIView):
         else:
             return UserAddress.objects.none()
 
-
 # CBVs
 
-class AddressSelectFormView(FormView, CartOrderMixin, UserCheckoutMixin):
+class AddressSelectFormView(CartOrderMixin, UserCheckoutMixin, FormView):
     form_class = AddressForm
     template_name = 'orders/address_select.html'
 
@@ -100,7 +105,6 @@ class AddressSelectFormView(FormView, CartOrderMixin, UserCheckoutMixin):
     def get_success_url(self, *args, **kwargs):
         return reverse('checkout')
 
-
 class UserAddressCreateView(UserCheckoutMixin, CreateView):
     form_class = UserAddressForm
     template_name = 'forms.html'
@@ -116,14 +120,12 @@ class UserAddressCreateView(UserCheckoutMixin, CreateView):
     def get_success_url(self, *args, **kwargs):
         return reverse('order_address')
 
-
 class OrderListView(LoginRequiredMixin, UserCheckoutMixin, ListView):
     queryset = Order.objects.all()
 
     def get_queryset(self):
         user_checkout = self.get_user_checkout()
         return super(OrderListView, self).get_queryset().filter(user_checkout=user_checkout)
-
 
 class OrderDetailView(UserCheckoutMixin, DetailView):
     model = Order
