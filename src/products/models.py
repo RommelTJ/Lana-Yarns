@@ -95,6 +95,8 @@ class Variation(models.Model):
 
 # Product Image
 
+#TODO: Add image to variations.
+
 def image_upload_to(instance, filename):
     title = instance.product.title
     slug = slugify(title)
